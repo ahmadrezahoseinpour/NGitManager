@@ -10,9 +10,9 @@ namespace GitManager
     {
         public static IServiceCollection AddGitManager(this IServiceCollection services, string gitLabUrl, string personalAccessToken)
         {
-            if (string.IsNullOrEmpty(gitLabUrl))
+            if (string.IsNullOrWhiteSpace(gitLabUrl))
                 throw new ArgumentNullException(nameof(gitLabUrl));
-            if (string.IsNullOrEmpty(personalAccessToken))
+            if (string.IsNullOrWhiteSpace(personalAccessToken))
                 throw new ArgumentNullException(nameof(personalAccessToken));
 
             //services.AddSingleton<IGitLabClient>(GitLabClient.Connect(gitLabUrl, personalAccessToken));
