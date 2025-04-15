@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using GitManager.Interface;
+using Microsoft.Extensions.DependencyInjection;
 using NGitLab;
 using System;
 using System.Collections.Generic;

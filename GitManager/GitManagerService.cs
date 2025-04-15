@@ -1,3 +1,4 @@
+using GitManager.Interface;
 using NGitLab;
 using NGitLab.Models;
 using System;
@@ -12,6 +13,13 @@ namespace GitManager
     internal class GitManagerService : IGitManagerService
     {
         private readonly GitLabClient _client;
+
+        public IGitUser GitUser { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IGitEpic GitEpic { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IGitIssue GitIssue { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+
+
         //private readonly Action<GitLabException> _onGitLabError; // Optional error handler callback
 
         /// <summary>
@@ -27,23 +35,19 @@ namespace GitManager
             if (string.IsNullOrWhiteSpace(personalAccessToken))
                 throw new ArgumentNullException(nameof(personalAccessToken));
 
-            // Consider adding more robust URL validation if needed
-            _client = new GitLabClient(gitLabUrl.TrimEnd('/'), personalAccessToken); // Ensure no trailing slash
-            //_onGitLabError = onGitLabError;
+
+            _client = new GitLabClient(gitLabUrl.TrimEnd('/'), personalAccessToken);
         }
 
-        // Helper to wrap NGitLab calls with error handling
+
         private async Task<T> ExecuteGitLabActionAsync<T>(Func<T> action, string operationDescription)
         {
             try
             {
-                // NGitLab calls are often synchronous, use Task.Run to avoid blocking async methods
                 return await Task.Run(action);
             }
             catch (GitLabException ex)
             {
-                //_onGitLabError?.Invoke(ex); // Invoke optional handler
-                // Provide more context in the exception
                 throw new InvalidOperationException($"GitLab API error during '{operationDescription}': {ex.Message} (StatusCode: {ex.StatusCode})", ex);
             }
             catch (Exception ex) when (!(ex is GitLabException)) // Catch non-GitLab exceptions
@@ -58,7 +62,6 @@ namespace GitManager
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             return ExecuteGitLabActionAsync(() => _client.Issues.ForProject(projectId).ToList(), $"getting issues for project {projectId}");
-            // Use ToList() to ensure enumeration happens within the Task.Run context
         }
 
         public Task<List<Issue>> GetProjectIssuesAsync(int projectId, IssueQuery query)
@@ -75,7 +78,7 @@ namespace GitManager
             return ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueIid), $"getting issue {issueIid} for project {projectId}");
         }
 
-        public Task<Issue> CreateIssueAsync(int projectId, string title, string description, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
+        public Task<Issue> CreateIssueAsync(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Issue title cannot be empty.", nameof(title));
@@ -84,7 +87,10 @@ namespace GitManager
             {
                 ProjectId = projectId,
                 Title = title,
-                Description = description // Can be null or empty
+                Description = description, // Can be null or empty
+                EpicId = epicId,
+                Weight = weight
+
             };
 
             if (labels?.Any() == true)
@@ -99,10 +105,11 @@ namespace GitManager
             return ExecuteGitLabActionAsync(() => _client.Issues.Create(issueCreate), $"creating issue in project {projectId}");
         }
 
-        public Task<Issue> UpdateIssueAsync(int projectId, int issueIid, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
+        public Task<Issue> UpdateIssueAsync(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             if (issueIid <= 0) throw new ArgumentException("Issue IID must be positive.", nameof(issueIid));
+            if (epicId <= 0) throw new ArgumentException("Epic ID must be positive.", nameof(epicId));
 
             var issueUpdate = new IssueEdit
             {
@@ -110,7 +117,10 @@ namespace GitManager
                 IssueId = issueIid, // NGitLab uses IssueId here which corresponds to Iid
                 Title = title, // NGitLab handles nulls internally (won't update if null)
                 Description = description,
-                State = state // Should be "close" or "reopen"
+                State = state, // Should be "close" or "reopen"
+                EpicId = epicId,
+                Weight = weight
+
             };
 
             if (labels != null) // If labels are provided (even empty list), update them
@@ -121,7 +131,12 @@ namespace GitManager
             {
                 issueUpdate.AssigneeIds = assigneeIds.ToArray();
             }
-
+            IssueQuery issueQuery = new()
+            {
+                UpdatedAfter = DateTime.Now,
+                UpdatedBefore = DateTime.Now.AddMonths(-3)
+            };
+            _client.Users.
             return ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"updating issue {issueIid} in project {projectId}");
         }
 
@@ -170,7 +185,7 @@ namespace GitManager
                 epicCreate.Labels = string.Join(",", labels);
             }
 
-            return ExecuteGitLabActionAsync(() => _client.Epics.Create(groupId,epicCreate), $"creating epic in group {groupId}");
+            return ExecuteGitLabActionAsync(() => _client.Epics.Create(groupId, epicCreate), $"creating epic in group {groupId}");
         }
 
         public Task<Epic> UpdateEpicAsync(int groupId, int epicIid, string title = null, string description = null, string stateEvent = null, IEnumerable<string> labels = null)
@@ -219,391 +234,5 @@ namespace GitManager
         }
 
         #endregion
-
-
-        //#region Issues
-        ///// <inheritdoc/>
-        ///// 
-        ///// <summary>
-        ///// Get a list of issues for the specified project.
-        ///// </summary>
-        //public async Task<IEnumerable<Issue>> GetIssuesAsync(int projectId)
-        //{
-        //    try
-        //    {
-        //        var issueClient = _client.Issues.ForProject(projectId);
-        //        return await Task.FromResult(issueClient);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to getting issues in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while getting issues in project {projectId}.", ex);
-        //    }
-        //}
-
-        ///// <inheritdoc/>
-        ///// 
-        ///// <summary>
-        ///// Return project issues for a given query.
-        ///// </summary>
-        //public async Task<IEnumerable<Issue>> GetIssuesAsync(int projectId, IssueQuery issueQuery)
-        //{
-        //    try
-        //    {
-        //        var issueClient = _client.Issues.Get(projectId, issueQuery);
-        //        return await Task.FromResult(issueClient);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to getting issues in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while getting issues in project {projectId}.", ex);
-        //    }
-        //}
-
-        ///// <inheritdoc/>
-        ///// 
-        ///// <summary>
-        /////     <para>Return a single issue for a project given project.</para>
-        /////     <para>url like GET /projects/:id/issues/:issue_id</para>
-        ///// </summary>
-        //public async Task<Issue> GetIssueAsync(int projectId, int issueId)
-        //{
-        //    try
-        //    {
-        //        var issue = _client.Issues.Get(projectId, issueId);
-        //        return await Task.FromResult(issue);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to get issue in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while getting issue in project {projectId}.", ex);
-        //    }
-        //}
-
-        ///// <inheritdoc/>
-        ///// 
-        ///// <summary>
-        /////     <para>Creates a new issue for a specified project in GitLab.</para>
-        /////     <para>Corresponds to POST /projects/:id/issues</para>
-        ///// </summary>
-        //public async Task<Issue> CreateIssueAsync(int projectId, string title, string description, string[] labels = null)
-        //{
-        //    try
-        //    {
-
-        //        var issueCreate = new IssueCreate
-        //        {
-        //            ProjectId = projectId,
-        //            Title = title,
-        //            Description = description
-        //        };
-
-        //        if (labels != null && labels.Length > 0)
-        //        {
-        //            issueCreate.Labels = string.Join(",", labels);
-        //        }
-
-        //        var issue = _client.Issues.Create(issueCreate);
-        //        return await Task.FromResult(issue);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to create issue in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while creating issue in project {projectId}.", ex);
-        //    }
-        //}
-
-        ///// <inheritdoc/>
-        ///// /// <summary>
-        /////     <para>Updates the issue for a specified project in GitLab.</para>
-        /////     <para>Corresponds to PUT /projects/:id/issues</para>
-        ///// </summary>
-        //public async Task<Issue> UpdateIssueAsync(int projectId, int issueId, long[] assigneeIds, string title = null, string description = null, string state = null)
-        //{
-        //    try
-        //    {
-        //        var issueUpdate = new IssueEdit
-        //        {
-        //            AssigneeIds = assigneeIds,
-        //            ProjectId = projectId,
-        //            IssueId = issueId
-        //        };
-
-        //        if (!string.IsNullOrEmpty(title))
-        //            issueUpdate.Title = title;
-
-        //        if (!string.IsNullOrEmpty(description))
-        //            issueUpdate.Description = description;
-
-        //        if (!string.IsNullOrEmpty(state))
-        //            issueUpdate.State = state;
-
-        //        var issue = _client.Issues.Edit(issueUpdate);
-        //        return await Task.FromResult(issue);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to update issue in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while updating issue in project {projectId}.", ex);
-        //    }
-
-
-        //}
-
-        ///// <summary>
-        /////     <para>Close a single issue from a specified project in GitLab.</para>
-        /////     <para>Corresponds to EDIT /projects/:id/issues/:issue_iid</para>
-        ///// </summary>
-        ///// <param name="projectId">The ID of the project containing the issue.</param>
-        ///// <param name="issueId">The ID of the issue to delete.</param>
-        ///// <exception cref="InvalidOperationException">Thrown when the issue deletion fails due to API errors or unexpected issues.</exception>
-        //public async Task<Issue> CloseIssueAsync(int projectId, int issueId)
-        //{
-        //    try
-        //    {
-        //        if (projectId <= 0)
-        //            throw new ArgumentException("Project ID must be a positive integer.", nameof(projectId));
-        //        if (issueId <= 0)
-        //            throw new ArgumentException("Issue IID must be a positive integer.", nameof(issueId));
-
-        //        var issueEdit = new IssueEdit
-        //        {
-        //            ProjectId = projectId,
-        //            IssueId = issueId,
-        //            State = "close"
-        //        };
-        //        var updatedIssue = await Task.Run(() => _client.Issues.Edit(issueEdit));
-        //        return updatedIssue;
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, issue not found, permissions)
-        //        throw new InvalidOperationException($"Failed to delete issue {issueId} in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while deleting issue {issueId} in project {projectId}.", ex);
-        //    }
-        //}
-        //#endregion
-
-
-        //#region Epic
-        ///// <inheritdoc/>
-        ///// 
-        ///// <summary>
-        ///// Get a list of epic for the specified project.
-        ///// </summary>
-        //public async Task<IEnumerable<Issue>> GetIssuesAsync(int projectId)
-        //{
-        //    try
-        //    {
-        //        var issueClient = _client.Issues.ForProject(projectId);
-        //        return await Task.FromResult(issueClient);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to getting issues in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while getting issues in project {projectId}.", ex);
-        //    }
-        //}
-
-        ///// <inheritdoc/>
-        ///// 
-        ///// <summary>
-        ///// Return project issues for a given query.
-        ///// </summary>
-        //public async Task<IEnumerable<Issue>> GetIssuesAsync(int projectId, IssueQuery issueQuery)
-        //{
-        //    try
-        //    {
-        //        var issueClient = _client.Issues.Get(projectId, issueQuery);
-        //        return await Task.FromResult(issueClient);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to getting issues in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while getting issues in project {projectId}.", ex);
-        //    }
-        //}
-
-        ///// <inheritdoc/>
-        ///// 
-        ///// <summary>
-        /////     <para>Return a single issue for a project given project.</para>
-        /////     <para>url like GET /projects/:id/issues/:issue_id</para>
-        ///// </summary>
-        //public async Task<Issue> GetIssueAsync(int projectId, int issueId)
-        //{
-        //    try
-        //    {
-        //        var issue = _client.Issues.Get(projectId, issueId);
-        //        return await Task.FromResult(issue);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to get issue in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while getting issue in project {projectId}.", ex);
-        //    }
-        //}
-
-        ///// <inheritdoc/>
-        ///// 
-        ///// <summary>
-        /////     <para>Creates a new issue for a specified project in GitLab.</para>
-        /////     <para>Corresponds to POST /projects/:id/issues</para>
-        ///// </summary>
-        //public async Task<Issue> CreateIssueAsync(int projectId, string title, string description, string[] labels = null)
-        //{
-        //    try
-        //    {
-
-        //        var issueCreate = new IssueCreate
-        //        {
-        //            ProjectId = projectId,
-        //            Title = title,
-        //            Description = description
-        //        };
-
-        //        if (labels != null && labels.Length > 0)
-        //        {
-        //            issueCreate.Labels = string.Join(",", labels);
-        //        }
-
-        //        var issue = _client.Issues.Create(issueCreate);
-        //        return await Task.FromResult(issue);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to create issue in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while creating issue in project {projectId}.", ex);
-        //    }
-        //}
-
-        ///// <inheritdoc/>
-        ///// /// <summary>
-        /////     <para>Updates the issue for a specified project in GitLab.</para>
-        /////     <para>Corresponds to PUT /projects/:id/issues</para>
-        ///// </summary>
-        //public async Task<Issue> UpdateIssueAsync(int projectId, int issueId, long[] assigneeIds, string title = null, string description = null, string state = null)
-        //{
-        //    try
-        //    {
-        //        var issueUpdate = new IssueEdit
-        //        {
-        //            AssigneeIds = assigneeIds,
-        //            ProjectId = projectId,
-        //            IssueId = issueId
-        //        };
-
-        //        if (!string.IsNullOrEmpty(title))
-        //            issueUpdate.Title = title;
-
-        //        if (!string.IsNullOrEmpty(description))
-        //            issueUpdate.Description = description;
-
-        //        if (!string.IsNullOrEmpty(state))
-        //            issueUpdate.State = state;
-
-        //        var issue = _client.Issues.Edit(issueUpdate);
-        //        return await Task.FromResult(issue);
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, authentication issues)
-        //        throw new InvalidOperationException($"Failed to update issue in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while updating issue in project {projectId}.", ex);
-        //    }
-
-
-        //}
-
-        ///// <summary>
-        /////     <para>Close a single issue from a specified project in GitLab.</para>
-        /////     <para>Corresponds to EDIT /projects/:id/issues/:issue_iid</para>
-        ///// </summary>
-        ///// <param name="projectId">The ID of the project containing the issue.</param>
-        ///// <param name="issueId">The ID of the issue to delete.</param>
-        ///// <exception cref="InvalidOperationException">Thrown when the issue deletion fails due to API errors or unexpected issues.</exception>
-        //public async Task<Issue> CloseIssueAsync(int projectId, int issueId)
-        //{
-        //    try
-        //    {
-        //        if (projectId <= 0)
-        //            throw new ArgumentException("Project ID must be a positive integer.", nameof(projectId));
-        //        if (issueId <= 0)
-        //            throw new ArgumentException("Issue IID must be a positive integer.", nameof(issueId));
-
-        //        var issueEdit = new IssueEdit
-        //        {
-        //            ProjectId = projectId,
-        //            IssueId = issueId,
-        //            State = "close"
-        //        };
-        //        var updatedIssue = await Task.Run(() => _client.Issues.Edit(issueEdit));
-        //        return updatedIssue;
-        //    }
-        //    catch (GitLabException ex)
-        //    {
-        //        // Handle GitLab-specific errors (e.g., invalid project ID, issue not found, permissions)
-        //        throw new InvalidOperationException($"Failed to delete issue {issueId} in project {projectId}: {ex.Message}", ex);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle unexpected errors (e.g., network issues, null references)
-        //        throw new InvalidOperationException($"An unexpected error occurred while deleting issue {issueId} in project {projectId}.", ex);
-        //    }
-        //}
-        //#endregion
     }
 }
