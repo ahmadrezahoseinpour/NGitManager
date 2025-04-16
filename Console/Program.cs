@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using GitManager;
+using GitManager.Interface;
 
 class Program
 {
@@ -21,12 +22,12 @@ class Program
         int projectId = 190;
         int issueId = 285;
         // Example: Get an issue
-        var testGetIssue = await gitService.GetIssueAsync(
+        var testGetIssue = await gitService.Issue.Get(
             projectId,
             issueId
         );
         // Example: Get a List issues
-        var testGetIssues = await gitService.GetIssuesAsync(
+        var testGetIssues = await gitService.Epic.GetGroup(
             projectId
         );
         string descs = "";
