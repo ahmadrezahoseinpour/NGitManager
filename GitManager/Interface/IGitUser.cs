@@ -1,4 +1,5 @@
-﻿using NGitLab.Models;
+﻿using GitManager.Dto.User;
+using NGitLab.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,7 +29,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if searchQuery is null or empty.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<List<User>> SearchUsersAsync(string searchQuery);
+        List<UserDto> SearchUsers(string searchQuery);
 
         #endregion
     }

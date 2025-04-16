@@ -1,4 +1,6 @@
-﻿using GitManager.Interface;
+﻿using AutoMapper;
+using GitManager.Interface;
+using GitManager.Mapper;
 using Microsoft.Extensions.DependencyInjection;
 using NGitLab;
 using System;
@@ -16,10 +18,18 @@ namespace GitManager
             if (string.IsNullOrWhiteSpace(personalAccessToken))
                 throw new ArgumentNullException(nameof(personalAccessToken));
 
+            //services.AddAutoMapper(typeof(MappingProfile).Assembly);
+            services.AddAutoMapper(cfg=>
+            cfg.AddProfile<MappingProfile>());
+
             //services.AddSingleton<IGitLabClient>(GitLabClient.Connect(gitLabUrl, personalAccessToken));
             //services.AddScoped<IGitManagerService, GitManagerService>();
+            services.AddSingleton<IGitManagerService>(provider =>
+            {
+                var mapper = provider.GetRequiredService<IMapper>();
+                return new GitManagerService(gitLabUrl, personalAccessToken, mapper);
+            });
 
-            services.AddSingleton<IGitManagerService>(new GitManagerService(gitLabUrl, personalAccessToken));
             return services;
         }
     }

@@ -8,9 +8,9 @@ namespace GitManager.Interface
 {
     public interface IGitManagerService
     {
-        public IGitUser GitUser{ get; set; }
-        public IGitEpic GitEpic{ get; set; }
-        public IGitIssue GitIssue { get; set; }
 
+        public IGitIssue Issue { get; }
+        public IGitEpic Epic { get; }
+        public IGitUser User{ get; }
     }
 }

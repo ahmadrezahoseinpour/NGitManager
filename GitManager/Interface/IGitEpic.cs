@@ -1,4 +1,5 @@
-﻿using NGitLab.Models;
+﻿using GitManager.Dto.Epic;
+using NGitLab.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -29,7 +30,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if groupId is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<List<Epic>> GetGroupEpicsAsync(int groupId, EpicQuery query);
+        List<EpicDto> GetGroupEpic(int groupId, EpicQuery query);
 
         /// <summary>
         /// Gets a specific epic by its internal ID (Iid) within a group.
@@ -40,7 +41,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if groupId or epicIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error (e.g., not found).</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<Epic> GetEpicAsync(int groupId, int epicIid);
+        EpicDto GetEpic(int groupId, int epicIid);
 
         /// <summary>
         /// Creates a new epic in a group.
@@ -53,7 +54,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if required parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<Epic> CreateEpicAsync(int groupId, string title, string description = null, IEnumerable<string> labels = null);
+        EpicDto CreateEpic(int groupId, string title, string description = null, IEnumerable<string> labels = null);
 
         /// <summary>
         /// Updates an existing epic.
@@ -68,7 +69,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if identifying parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<Epic> UpdateEpicAsync(int groupId, int epicIid, string title = null, string description = null, string stateEvent = null, IEnumerable<string> labels = null);
+        EpicDto UpdateEpic(int groupId, int epicIid, string title = null, string description = null, string stateEvent = null, IEnumerable<string> labels = null);
 
         /// <summary>
         /// Closes an existing epic.
@@ -79,7 +80,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if groupId or epicIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<Epic> CloseEpicAsync(int groupId, int epicIid);
+        EpicDto CloseEpic(int groupId, int epicIid);
 
         #endregion
     }

@@ -1,4 +1,5 @@
-﻿using NGitLab.Models;
+﻿using GitManager.Dto.Issue;
+using NGitLab.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,7 +19,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<List<Issue>> GetProjectIssuesAsync(int projectId);
+        List<IssueDto> GetGroupIssue111(int projectId);
 
         /// <summary>
         /// Gets issues for a specific project based on a query.
@@ -29,7 +30,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<List<Issue>> GetProjectIssuesAsync(int projectId, IssueQuery query);
+        List<IssueDto> GetGroupIssue(int projectId, IssueQuery query);
 
         /// <summary>
         /// Gets a specific issue by its internal ID (Iid) within a project.
@@ -40,7 +41,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error (e.g., not found).</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<Issue> GetIssueAsync(int projectId, int issueIid);
+        IssueDto GetIssue(int projectId, int issueIid);
 
         /// <summary>
         /// Creates a new issue in a project.
@@ -54,7 +55,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if required parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<Issue> CreateIssueAsync(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
+        IssueDto CreateIssue(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
 
         /// <summary>
         /// Updates an existing issue.
@@ -70,7 +71,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if identifying parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<Issue> UpdateIssueAsync(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
+        IssueDto UpdateIssue(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
 
         /// <summary>
         /// Closes an existing issue.
@@ -81,7 +82,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<Issue> CloseIssueAsync(int projectId, int issueIid);
+        IssueDto CloseIssue(int projectId, int issueIid);
 
         #endregion
     }
