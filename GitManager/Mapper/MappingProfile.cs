@@ -21,6 +21,7 @@ namespace GitManager.Mapper
             CreateMap<References, ReferencesDto>();
 
             CreateMap<Epic, EpicDto>();
+            CreateMap<EpicQuery, EpicQueryDto>();
         }
     }
 }

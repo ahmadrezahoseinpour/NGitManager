@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace GitManager.Interface
 {
-    public interface IGitUser
+    public interface IUserService
     {
         #region Users
 
@@ -29,7 +29,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if searchQuery is null or empty.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        List<UserDto> SearchUsers(string searchQuery);
+        List<UserDto> Search(string searchQuery);
 
         #endregion
     }

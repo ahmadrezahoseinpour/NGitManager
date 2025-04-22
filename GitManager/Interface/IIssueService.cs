@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace GitManager.Interface
 {
-    public interface IGitIssue
+    public interface IIssueService
     {
         #region Issues
 
@@ -19,7 +19,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        List<IssueDto> GetGroupIssue111(int projectId);
+        Task<List<IssueDto>> GetAll(int projectId);
 
         /// <summary>
         /// Gets issues for a specific project based on a query.
@@ -30,7 +30,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        List<IssueDto> GetGroupIssue(int projectId, IssueQuery query);
+        Task<List<IssueDto>> Search(int projectId, IssueQueryDto query);
 
         /// <summary>
         /// Gets a specific issue by its internal ID (Iid) within a project.
@@ -41,7 +41,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error (e.g., not found).</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        IssueDto GetIssue(int projectId, int issueIid);
+        Task<IssueDto> Get(int projectId, int issueIid);
 
         /// <summary>
         /// Creates a new issue in a project.
@@ -55,7 +55,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if required parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        IssueDto CreateIssue(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
+        Task<IssueDto> Create(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
 
         /// <summary>
         /// Updates an existing issue.
@@ -71,7 +71,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if identifying parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        IssueDto UpdateIssue(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
+        Task<IssueDto> Update(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
 
         /// <summary>
         /// Closes an existing issue.
@@ -82,7 +82,18 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        IssueDto CloseIssue(int projectId, int issueIid);
+        Task<IssueDto> Close(int projectId, int issueIid);
+
+        /// <summary>
+        /// Opens an existing issue.
+        /// </summary>
+        /// <param name="projectId">The ID or URL-encoded path of the project.</param>
+        /// <param name="issueIid">The internal ID (Iid) of the issue to close.</param>
+        /// <returns>The closed issue.</returns>
+        /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
+        /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
+        /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
+        Task<IssueDto> Open(int projectId, int issueIid);
 
         #endregion
     }

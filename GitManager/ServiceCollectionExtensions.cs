@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GitManager.Interface;
 using GitManager.Mapper;
+using GitManager.Service;
 using Microsoft.Extensions.DependencyInjection;
 using NGitLab;
 using System;
@@ -18,19 +19,27 @@ namespace GitManager
             if (string.IsNullOrWhiteSpace(personalAccessToken))
                 throw new ArgumentNullException(nameof(personalAccessToken));
 
-            //services.AddAutoMapper(typeof(MappingProfile).Assembly);
-            services.AddAutoMapper(cfg=>
+
+            GitLabClient _client;
+        //services.AddAutoMapper(typeof(MappingProfile).Assembly);
+        services.AddAutoMapper(cfg =>
             cfg.AddProfile<MappingProfile>());
 
+            var gitLabClient = new GitLabClient(gitLabUrl, personalAccessToken);
             //services.AddSingleton<IGitLabClient>(GitLabClient.Connect(gitLabUrl, personalAccessToken));
             //services.AddScoped<IGitManagerService, GitManagerService>();
-            services.AddSingleton<IGitManagerService>(provider =>
+            services.AddSingleton<IGitManagerService, GitManagerService>(provider =>
             {
                 var mapper = provider.GetRequiredService<IMapper>();
                 return new GitManagerService(gitLabUrl, personalAccessToken, mapper);
             });
+            services.AddSingleton<IIssueService, IssueService>(provider =>
+            {
+                var mapper = provider.GetRequiredService<IMapper>();
+                return new IssueService(mapper, gitLabClient);
+            });
 
             return services;
         }
-    }
+}
 }
