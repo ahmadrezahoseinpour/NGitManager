@@ -1,0 +1,87 @@
+﻿@page "/issues"
+@using GitManager.Interface
+@inject IIssueService IssueService
+@inject NavigationManager NavigationManager
+
+@* <h3>Issues for Project @projectId</h3> *@
+
+@* <a href="/issues/create/@projectId" class="btn btn-primary">Create New Issue</a> *@
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>State</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (IssuesList.Count() >= 1)
+            @foreach (var issue in IssuesList)
+            {
+                <tr>
+                    <td>@issue.IssueId</td>
+                    <td>@issue.Title</td>
+                    <td>@issue.State</td>
+                    <td>
+                        <a href="/issues/@ProjectId/@issue.IssueId" class="btn btn-info">View</a>
+                        <a href="/issues/edit/@ProjectId/@issue.IssueId" class="btn btn-warning">Edit</a>
+                        @if (issue.State == "opened")
+                        {
+                            <button class="btn btn-danger" @onclick="() => CloseIssue(Convert.ToInt32(issue.IssueId))">Close</button>
+                        }
+                        else if (issue.State == "closed")
+                        {
+                            <button class="btn btn-success" @onclick="() => OpenIssue(Convert.ToInt32(issue.IssueId))">Reopen</button>
+                        }
+                    </td>
+                </tr>
+            }
+    </tbody>
+</table>
+
+
+<h3>Create New Issue for Project @ProjectId</h3>
+
+<form @onsubmit="CreateIssue">
+    <div class="form-group">
+        <label for="title">Title:</label>
+        <input type="text" id="title" class="form-control" @bind="Title" required />
+    </div>
+    <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea id="description" class="form-control" @bind="Description"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+
+
+<h3>Edit Issue @IssueIid for Project @ProjectId</h3>
+
+<form @onsubmit="UpdateIssue">
+    <div class="form-group">
+        <label for="title">Title:</label>
+        <input type="text" id="title" class="form-control" @bind="Title" required />
+    </div>
+    <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea id="description" class="form-control" @bind="Description"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+
+<a href="/issues/@ProjectId/@IssueIid" class="btn btn-secondary">Back to Issue</a>
+
+
+
+<h3>Issue @Issue.IssueId: @Issue.Title</h3>
+
+<div>
+    <p><strong>State:</strong> @Issue.State</p>
+    <p><strong>Description:</strong> @Issue.Description</p>
+</div>
+
+<a href="/issues/@ProjectId" class="btn btn-secondary">Back to List</a>
+<a href="/issues/edit/@ProjectId/@IssueIid" class="btn btn-warning">Edit</a>
