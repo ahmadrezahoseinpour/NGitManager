@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using GitManager;
 using GitManager.Interface;
+using GitManager.Dto.Issue;
+using GitManager.Dto.Epic;
 
 class Program
 {
@@ -22,20 +24,21 @@ class Program
         int projectId = 190;
         int issueId = 285;
         // Example: Get an issue
-        var testGetIssue = await gitService.Issue.Get(
+        var testGetIssue = gitService.Issue.Get(
             projectId,
             issueId
         );
         // Example: Get a List issues
-        var testGetIssues = await gitService.Epic.GetGroup(
-            projectId
+        var iEpic = new EpicQueryDto();
+        var testGetIssues = gitService.Epic.GetAll(
+            projectId,iEpic
         );
         string descs = "";
         foreach (var i in testGetIssues)
         {
             descs+= i.Description ;
         }
-        Console.WriteLine($"Issue got successfully.{testGetIssue.Description}");
+        Console.WriteLine($"Issue got successfully.{testGetIssue.Result.Description}");
         Console.WriteLine($"Issues got successfully.{descs}");
     }
 }
