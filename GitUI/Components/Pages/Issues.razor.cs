@@ -6,9 +6,19 @@ namespace GitUI.Components.Pages
 {
     public partial class Issues
     {
-        [Parameter] public int ProjectId { get; set; }
+        [Parameter] public int ProjectId { get; set; } = new();
+        [Parameter] public int IssueIid { get; set; }
+        public string ErrorMessage { get; set; }
+        private string SelectedState { get; set; } = "All";
+        public bool IsLoading { get; set; }
 
-        public List<IssueDto> IssuesList { get; set; } = new List<IssueDto>();
+        private string Title { get; set; }
+        private string Description { get; set; }
+
+
+        private IssueDto Issue { get; set; } = new();
+
+        public List<IssueDto> IssuesList { get; set; }=new();
         protected override async Task OnInitializedAsync()
         {
             //IssuesDto = await IssueService.GetAll(ProjectId);
@@ -22,25 +32,33 @@ namespace GitUI.Components.Pages
 
             ////for Get
             //Issue = await IssueService.Get(ProjectId, IssueIid);
+           
+        }
+
+        private async Task<List<IssueDto>> GetAllIssue(int ProjectId)
+        {
+            IssuesList = await IssueService.GetAll(ProjectId);
+            StateHasChanged();
+            return IssuesList;
         }
 
         private async Task CloseIssue(int issueIid)
         {
             await IssueService.Close(ProjectId, issueIid);
-            IssuesList = await IssueService.GetAll(ProjectId);
+            await GetAllIssue(ProjectId);
             StateHasChanged();
         }
 
         private async Task OpenIssue(int issueIid)
         {
             await IssueService.Open(ProjectId, issueIid);
-            IssuesList = await IssueService.GetAll(ProjectId);
+            await GetAllIssue(ProjectId); 
             StateHasChanged();
         }
-
-
-        private string Title { get; set; }
-        private string Description { get; set; }
+        private async Task SearchIssues()
+        {
+            await LoadIssues();
+        }
 
         private async Task CreateIssue()
         {
@@ -48,17 +66,41 @@ namespace GitUI.Components.Pages
             NavigationManager.NavigateTo($"/issues/{ProjectId}/{newIssue.IssueId}");
         }
 
-        [Parameter] public int IssueIid { get; set; }
-
-        private IssueDto Issue { get; set; }
-
-
         private async Task UpdateIssue()
         {
             var updatedIssue = await IssueService.Update(ProjectId, IssueIid, title: Title, description: Description);
             NavigationManager.NavigateTo($"/issues/{ProjectId}/{updatedIssue.IssueId}");
         }
+        private async Task LoadIssues()
+        {
+            if (ProjectId <= 0)
+            {
+                IssuesList = new List<IssueDto>();
+                ErrorMessage = "Please enter a valid Project ID.";
+                IsLoading = false;
+                return;
+            }
 
-
+            IsLoading = true;
+            ErrorMessage = string.Empty;
+            try
+            {
+                // Fetch all issues and filter client-side by state
+                var allIssues = await IssueService.GetAll(ProjectId) ?? new List<IssueDto>();
+                IssuesList = SelectedState == "All"
+                    ? allIssues
+                    : allIssues.Where(i => i.State.ToLower() == SelectedState.ToLower()).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching issues: {ex.Message}");
+                ErrorMessage = "Failed to load issues. Please try again.";
+                IssuesList = new List<IssueDto>();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
     }
 }

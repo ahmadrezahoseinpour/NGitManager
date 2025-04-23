@@ -11,7 +11,7 @@ namespace GitUI.Components.Pages
 
 
         public List<EpicDto> EpicsList { get; set; } = new List<EpicDto>();
-        private EpicDto epic { get; set; }
+        private EpicDto Epic { get; set; }
 
         private string Title { get; set; }
         private string Description { get; set; }

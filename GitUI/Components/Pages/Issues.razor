@@ -1,4 +1,5 @@
 ﻿@page "/issues"
+@page "/issues/{ProjectId:int}"
 @using GitManager.Interface
 @inject IIssueService IssueService
 @inject NavigationManager NavigationManager
@@ -6,7 +7,33 @@
 @* <h3>Issues for Project @projectId</h3> *@
 
 @* <a href="/issues/create/@projectId" class="btn btn-primary">Create New Issue</a> *@
+<h3>Issues for Project @(ProjectId > 0 ? ProjectId.ToString() : "Not Selected")</h3>
 
+<div class="mb-4">
+    <form >
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="projectId">Project ID</label>
+                    <input type="number" id="projectId" class="form-control" @bind="ProjectId" placeholder="Enter Project ID" required />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="stateFilter">State</label>
+                    <select id="stateFilter" class="form-control" @bind="SelectedState">
+                        <option value="All">All</option>
+                        <option value="Opened">Opened</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <button @onsubmit="SearchIssues" type="submit" class="btn btn-primary w-100">Search Issues by project id</button>
+            </div>
+        </div>
+    </form>
+</div>
 <table class="table">
     <thead>
         <tr>
@@ -17,16 +44,17 @@
         </tr>
     </thead>
     <tbody>
-        @if (IssuesList.Count() >= 1)
+        @if (IssuesList != null)
+        {@if(IssuesList.Count() >0){
             @foreach (var issue in IssuesList)
             {
                 <tr>
                     <td>@issue.IssueId</td>
                     <td>@issue.Title</td>
-                    <td>@issue.State</td>
+                    @* <td>@issue.State</td> *@
                     <td>
-                        <a href="/issues/@ProjectId/@issue.IssueId" class="btn btn-info">View</a>
-                        <a href="/issues/edit/@ProjectId/@issue.IssueId" class="btn btn-warning">Edit</a>
+                        @* <a href="/issues/@ProjectId/@issue.IssueId" class="btn btn-info">View</a> *@
+                        @* <a href="/issues/edit/@ProjectId/@issue.IssueId" class="btn btn-warning">Edit</a> *@
                         @if (issue.State == "opened")
                         {
                             <button class="btn btn-danger" @onclick="() => CloseIssue(Convert.ToInt32(issue.IssueId))">Close</button>
@@ -38,6 +66,8 @@
                     </td>
                 </tr>
             }
+        }
+                }
     </tbody>
 </table>
 
@@ -72,16 +102,16 @@
     <button type="submit" class="btn btn-primary">Update</button>
 </form>
 
-<a href="/issues/@ProjectId/@IssueIid" class="btn btn-secondary">Back to Issue</a>
+@* <a href="/issues/@ProjectId/@IssueIid" class="btn btn-secondary">Back to Issue</a> *@
 
 
 
-<h3>Issue @Issue.IssueId: @Issue.Title</h3>
+@* <h3>Issue @Issue.IssueId: @Issue.Title</h3> *@
 
 <div>
-    <p><strong>State:</strong> @Issue.State</p>
+    @* <p><strong>State:</strong> @Issue.State</p> *@
     <p><strong>Description:</strong> @Issue.Description</p>
 </div>
 
-<a href="/issues/@ProjectId" class="btn btn-secondary">Back to List</a>
-<a href="/issues/edit/@ProjectId/@IssueIid" class="btn btn-warning">Edit</a>
+@* <a href="/issues/@ProjectId" class="btn btn-secondary">Back to List</a> *@
+@* <a href="/issues/edit/@ProjectId/@IssueIid" class="btn btn-warning">Edit</a> *@

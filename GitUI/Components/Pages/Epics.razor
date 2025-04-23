@@ -27,13 +27,13 @@
                     <td>@epic.Title</td>
                     <td>@epic.State</td>
                     <td>
-                        <a href="/issues/@groupid/@epic.EpicIid" class="btn btn-info">View</a>
-                        <a href="/issues/edit/@groupid/@epic.EpicIid" class="btn btn-warning">Edit</a>
-                        @if (epic.State == EpicStateDto.opened)
+                        @* <a href="/issues/@groupid/@epic.EpicIid" class="btn btn-info">View</a> *@
+                        @* <a href="/issues/edit/@groupid/@epic.EpicIid" class="btn btn-warning">Edit</a> *@
+                        @if (epic.State.ToString() == EpicStateDto.opened.ToString())
                         {
                             <button class="btn btn-danger" @onclick="() => CloseEpic(Convert.ToInt32(epic.EpicIid))">Close</button>
                         }
-                        else if (epic.State == "closed")
+                        else if (epic.State.ToString() == EpicStateDto.closed.ToString())
                         {
                             <button class="btn btn-success" @onclick="() => OpenEpic(Convert.ToInt32(epic.EpicIid))">Reopen</button>
                         }
@@ -44,9 +44,9 @@
 </table>
 
 
-<h3>Create New Issue for Project @groupid</h3>
+<h3>Create New Epic for Group @groupid</h3>
 
-<form @onsubmit="Createepic">
+<form @onsubmit="CreateEpic">
     <div class="form-group">
         <label for="title">Title:</label>
         <input type="text" id="title" class="form-control" @bind="Title" required />
@@ -60,9 +60,9 @@
 
 
 
-<h3>Edit Issue @IssueIid for Project @ProjectId</h3>
+<h3>Edit Epic @epicIid for Project @groupid</h3>
 
-<form @onsubmit="UpdateIssue">
+<form @onsubmit="UpdateEpic">
     <div class="form-group">
         <label for="title">Title:</label>
         <input type="text" id="title" class="form-control" @bind="Title" required />
@@ -74,16 +74,16 @@
     <button type="submit" class="btn btn-primary">Update</button>
 </form>
 
-<a href="/issues/@ProjectId/@IssueIid" class="btn btn-secondary">Back to Issue</a>
+@* <a href="/issues/@groupid/@epicIid" class="btn btn-secondary">Back to Issue</a> *@
 
 
 
-<h3>Issue @Issue.IssueId: @Issue.Title</h3>
+<h3>Epic @Epic.EpicIid: @Epic.Title</h3>
 
 <div>
-    <p><strong>State:</strong> @Issue.State</p>
-    <p><strong>Description:</strong> @Issue.Description</p>
+    <p><strong>State:</strong> @Epic.State</p>
+    <p><strong>Description:</strong> @Epic.Description</p>
 </div>
 
-<a href="/issues/@ProjectId" class="btn btn-secondary">Back to List</a>
-<a href="/issues/edit/@ProjectId/@IssueIid" class="btn btn-warning">Edit</a>
+@* <a href="/epics/@groupid" class="btn btn-secondary">Back to List</a> *@
+@* <a href="/epics/update/@groupId/@" class="btn btn-warning">Edit</a> *@
