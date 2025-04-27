@@ -1,6 +1,6 @@
 ﻿using GitUI.Components;
-using GitManager;
 using GitManager.Interface;
+using GitManager.Service.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 

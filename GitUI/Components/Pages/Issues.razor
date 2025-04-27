@@ -3,44 +3,47 @@
 @using GitManager.Interface
 @inject IIssueService IssueService
 @inject NavigationManager NavigationManager
-
-@* <h3>Issues for Project @projectId</h3> *@
+@rendermode InteractiveServer
 
 @* <a href="/issues/create/@projectId" class="btn btn-primary">Create New Issue</a> *@
-<h3>Issues for Project @(ProjectId > 0 ? ProjectId.ToString() : "Not Selected")</h3>
+<h3>موارد برای پروژه @(ProjectId > 0 ? ProjectId.ToString() : "نا مشخص ")</h3>
 
-<div class="mb-4">
-    <form >
-        <div class="row g-3 align-items-end">
-            <div class="col-md-4">
+<div class="mb-12">
+    <EditForm Model="Issue" OnValidSubmit="@SearchIssues" FormName="searchIssues">
+        <DataAnnotationsValidator />
+        <div class="row g-3 align-items-end director">
+            <div class="col-md-3">
                 <div class="form-group">
-                    <label for="projectId">Project ID</label>
-                    <input type="number" id="projectId" class="form-control" @bind="ProjectId" placeholder="Enter Project ID" required />
+                    <label for="projectId">شناسه پروژه</label>
+                    <InputNumber id="projectId" @bind-Value="Issue.ProjectId" class="form-control" placeholder="شناسه پروژه را وارد کنید" tabindex="1" required />
+                    <ValidationMessage For="() => Issue.ProjectId" class="validation-message" />
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="form-group">
-                    <label for="stateFilter">State</label>
-                    <select id="stateFilter" class="form-control" @bind="SelectedState">
-                        <option value="All">All</option>
-                        <option value="Opened">Opened</option>
-                        <option value="Closed">Closed</option>
+                    <label for="stateFilter">وضعیت</label>
+                    <select id="stateFilter" class="form-control" @bind="@SelectedState" tabindex="2">
+                        <option value="All">همه</option>
+                        <option value="Opened">فعال</option>
+                        <option value="Closed">غیرفعال</option>
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
-                <button @onsubmit="SearchIssues" type="submit" class="btn btn-primary w-100">Search Issues by project id</button>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100" tabindex="3">جست و جو</button>
             </div>
         </div>
-    </form>
+    </EditForm>
 </div>
+
+
 <table class="table">
     <thead>
-        <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>State</th>
-            <th>Actions</th>
+        <tr class="director">
+            <th>شناسه</th>
+            <th>عنوان</th>
+            <th>وضعیت</th>
+            <th>جزِییات</th>
         </tr>
     </thead>
     <tbody>
@@ -48,7 +51,7 @@
         {@if(IssuesList.Count() >0){
             @foreach (var issue in IssuesList)
             {
-                <tr>
+                <tr class="director">
                     <td>@issue.IssueId</td>
                     <td>@issue.Title</td>
                     @* <td>@issue.State</td> *@
@@ -57,12 +60,15 @@
                         @* <a href="/issues/edit/@ProjectId/@issue.IssueId" class="btn btn-warning">Edit</a> *@
                         @if (issue.State == "opened")
                         {
-                            <button class="btn btn-danger" @onclick="() => CloseIssue(Convert.ToInt32(issue.IssueId))">Close</button>
+                            <button class="btn btn-danger" @onclick="() => CloseIssue(Convert.ToInt32(issue.IssueId))">غیرفعال</button>
                         }
                         else if (issue.State == "closed")
                         {
-                            <button class="btn btn-success" @onclick="() => OpenIssue(Convert.ToInt32(issue.IssueId))">Reopen</button>
+                            <button class="btn btn-success" @onclick="() => OpenIssue(Convert.ToInt32(issue.IssueId))">فعالسازی</button>
                         }
+                    </td>
+                    <td>
+                        <button @onclick="ToggleDetails" class="btn btn-primary">@(showDetails ? "Less" : "More")</button>
                     </td>
                 </tr>
             }
@@ -71,11 +77,14 @@
     </tbody>
 </table>
 
+@if (showDetails)
+{
 
-<h3>Create New Issue for Project @ProjectId</h3>
+}
+<h3>ایجاد مورد جدید برای پروژه @(ProjectId > 0 ? ProjectId.ToString() : "نا مشخص")</h3>
 
 <form @onsubmit="CreateIssue">
-    <div class="form-group">
+    <div class="form-group director">
         <label for="title">Title:</label>
         <input type="text" id="title" class="form-control" @bind="Title" required />
     </div>
@@ -88,10 +97,10 @@
 
 
 
-<h3>Edit Issue @IssueIid for Project @ProjectId</h3>
+<h3>ویرایش مورد @IssueIid برای پروژه @ProjectId</h3>
 
 <form @onsubmit="UpdateIssue">
-    <div class="form-group">
+    <div class="form-group director">
         <label for="title">Title:</label>
         <input type="text" id="title" class="form-control" @bind="Title" required />
     </div>
@@ -115,3 +124,35 @@
 
 @* <a href="/issues/@ProjectId" class="btn btn-secondary">Back to List</a> *@
 @* <a href="/issues/edit/@ProjectId/@IssueIid" class="btn btn-warning">Edit</a> *@
+
+
+
+<style>
+    *{
+        direction: rtl;
+    }
+    .director {
+        direction: rtl;
+    }
+
+    .btn{
+        min-width:80px;
+    }
+
+    .form-group {
+        position: relative;
+        margin-bottom: 1.5rem; /* Ensure space for validation message */
+    }
+
+    .validation-message {
+        color: red;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+        min-height: 1.5rem; /* Reserve space to prevent layout shift */
+    }
+
+    .form-control:invalid {
+        border-color: red;
+    }
+</style>

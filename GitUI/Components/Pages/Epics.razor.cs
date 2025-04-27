@@ -34,16 +34,16 @@ namespace GitUI.Components.Pages
         private async Task CloseEpic(int epicIid)
         {
             await EpicService.Close(groupid, epicIid);
-            EpicQueryDto eQDto = new();
-            EpicsList = await EpicService.GetAll(groupid, eQDto);
+            EpicQueryDto eQueryDto = new();
+            EpicsList = await EpicService.Search(groupid, eQueryDto);
             StateHasChanged();
         }
 
         private async Task OpenEpic(int epicIid)
         {
             await EpicService.Open(groupid, epicIid);
-            EpicQueryDto eQDto = new();
-            EpicsList = await EpicService.GetAll(groupid, eQDto);
+            EpicQueryDto eQueryDto = new();
+            EpicsList = await EpicService.Search(groupid, eQueryDto);
             StateHasChanged();
         }
 

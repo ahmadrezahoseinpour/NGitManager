@@ -1,13 +1,16 @@
 ﻿using GitManager.Dto.Issue;
 using GitManager.Interface;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace GitUI.Components.Pages
 {
     public partial class Issues
     {
-        [Parameter] public int ProjectId { get; set; } = new();
+        #region Properties
+        [Parameter] public int ProjectId { get; set; }
         [Parameter] public int IssueIid { get; set; }
+        private EditContext editContext;
         public string ErrorMessage { get; set; }
         private string SelectedState { get; set; } = "All";
         public bool IsLoading { get; set; }
@@ -16,9 +19,8 @@ namespace GitUI.Components.Pages
         private string Description { get; set; }
 
 
-        private IssueDto Issue { get; set; } = new();
-
-        public List<IssueDto> IssuesList { get; set; }=new();
+        private IssueDto Issue { get; set; } = new();        
+        public List<IssueDto> IssuesList { get; set; }= [];
         protected override async Task OnInitializedAsync()
         {
             //IssuesDto = await IssueService.GetAll(ProjectId);
@@ -32,9 +34,24 @@ namespace GitUI.Components.Pages
 
             ////for Get
             //Issue = await IssueService.Get(ProjectId, IssueIid);
-           
+            editContext = new EditContext(Issue);
+            Issue.ProjectId = 0;
+            StateHasChanged();
+            base.OnInitialized();
         }
+        #endregion
 
+        #region Modals
+
+        private bool showDetails = false;
+
+        private void ToggleDetails()
+        {
+            showDetails = !showDetails;
+        }
+        #endregion
+
+        #region Mothods
         private async Task<List<IssueDto>> GetAllIssue(int ProjectId)
         {
             IssuesList = await IssueService.GetAll(ProjectId);
@@ -72,7 +89,8 @@ namespace GitUI.Components.Pages
             NavigationManager.NavigateTo($"/issues/{ProjectId}/{updatedIssue.IssueId}");
         }
         private async Task LoadIssues()
-        {
+        {   
+            ProjectId = (int)Issue.ProjectId;
             if (ProjectId <= 0)
             {
                 IssuesList = new List<IssueDto>();
@@ -86,6 +104,7 @@ namespace GitUI.Components.Pages
             try
             {
                 // Fetch all issues and filter client-side by state
+
                 var allIssues = await IssueService.GetAll(ProjectId) ?? new List<IssueDto>();
                 IssuesList = SelectedState == "All"
                     ? allIssues
@@ -102,5 +121,7 @@ namespace GitUI.Components.Pages
                 IsLoading = false;
             }
         }
+        #endregion
+
     }
 }
