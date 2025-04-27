@@ -29,7 +29,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if searchQuery is null or empty.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        List<UserDto> Search(string searchQuery);
+        Task<List<UserDto>> Search(string searchQuery);
 
         #endregion
     }

@@ -30,7 +30,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if groupId is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<List<EpicDto>> GetAll(int groupId, EpicQueryDto query);
+        Task<List<EpicDto>> Search(int groupId, EpicQueryDto query);
 
         /// <summary>
         /// Gets a specific epic by its internal ID (Iid) within a group.
@@ -41,7 +41,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if groupId or epicIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error (e.g., not found).</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<EpicDto> Get(int groupId, int epicIid);
+        Task<EpicDto> GetById(int groupId, int epicIid);
 
         /// <summary>
         /// Creates a new epic in a group.
