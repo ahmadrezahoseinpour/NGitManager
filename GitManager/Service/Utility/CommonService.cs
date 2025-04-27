@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GitManager.Service
+namespace GitManager.Service.Utility
 {
     public class CommonService
     {
-        private async Task<T> ExecuteGitLabActionAsync<T>(Func<T> action, string operationDescription)
+        public async Task<T> ExecuteGitLabActionAsync<T>(Func<T> action, string operationDescription)
         {
             try
             {

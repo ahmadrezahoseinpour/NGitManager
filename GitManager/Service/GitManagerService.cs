@@ -24,8 +24,9 @@ namespace GitManager
         public IUserService User { get; }
         public IEpicService Epic { get; }
         public IIssueService Issue { get; }
+        public ILabelService Label { get; }
 
-        
+
         //private readonly Action<GitLabException> _onGitLabError; // Optional error handler callback
 
         /// <summary>
@@ -46,6 +47,7 @@ namespace GitManager
             Issue = new IssueService(_mapper, _client);
             User = new UserService(_mapper, _client);
             Epic = new EpicService(_mapper, _client);
+            Label = new LabelService(_mapper, _client);
         }
 
 

@@ -41,31 +41,31 @@ namespace GitManager.Service
 
         #region Epics Implementation
 
-        //public List<Epic> GetGroup(int groupId)
+        //public async Task<List<Epic>> GetAll(int groupId)
         //{
         //    if (groupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(groupId));
-        //    var res ExecuteGitLabActionAsync(() => _client.Epics.ForGroup(groupId).ToList(), $"getting epics for group {groupId}").Result;
+        //    var res = await ExecuteGitLabActionAsync(() => _client.Epics.G(groupId).ToList(), $"getting epics for group {groupId}");
         //    return _mapper.Map<List<EpicDto>>(res);
         //}
 
-        public Task<List<EpicDto>> GetAll(int groupId, EpicQueryDto query)
+        public async Task<List<EpicDto>> Search(int groupId, EpicQueryDto query)
         {
             if (groupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(groupId));
             if (query == null) throw new ArgumentNullException(nameof(query));
             var epicQuery = _mapper.Map<EpicQuery>(query);
-            var res = ExecuteGitLabActionAsync(() => _client.Epics.Get(groupId, epicQuery).ToList(), $"getting epics for group {groupId} with query").Result;
-            return _mapper.Map<Task<List<EpicDto>>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Get(groupId, epicQuery).ToList(), $"getting epics for group {groupId} with query");
+            return _mapper.Map<List<EpicDto>>(res);
         }
 
-        public Task<EpicDto> Get(int groupId, int epicIid)
+        public async Task<EpicDto> GetById(int groupId, int epicIid)
         {
             if (groupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(groupId));
             if (epicIid <= 0) throw new ArgumentException("Epic IID must be positive.", nameof(epicIid));
-            var res = ExecuteGitLabActionAsync(() => _client.Epics.Get(groupId, epicIid), $"getting epic {epicIid} for group {groupId}").Result;
-            return _mapper.Map<Task<EpicDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Get(groupId, epicIid), $"getting epic {epicIid} for group {groupId}");
+            return _mapper.Map<EpicDto>(res);
         }
 
-        public Task<EpicDto> Create(int groupId, string title, string description = null, IEnumerable<string> labels = null)
+        public async Task<EpicDto> Create(int groupId, string title, string description = null, IEnumerable<string> labels = null)
         {
             if (groupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(groupId));
             if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Epic title cannot be empty.", nameof(title));
@@ -81,11 +81,11 @@ namespace GitManager.Service
                 epicCreate.Labels = string.Join(",", labels);
             }
 
-            var res = ExecuteGitLabActionAsync(() => _client.Epics.Create(groupId, epicCreate), $"creating epic in group {groupId}").Result;
-            return _mapper.Map<Task<EpicDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Create(groupId, epicCreate), $"creating epic in group {groupId}");
+            return _mapper.Map<EpicDto>(res);
         }
 
-        public Task<EpicDto> Update(int groupId, int epicIid, string title = null, string description = null, string stateEvent = null, IEnumerable<string> labels = null)
+        public async Task<EpicDto> Update(int groupId, int epicIid, string title = null, string description = null, string stateEvent = null, IEnumerable<string> labels = null)
         {
             if (groupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(groupId));
             if (epicIid <= 0) throw new ArgumentException("Epic IID must be positive.", nameof(epicIid));
@@ -103,8 +103,8 @@ namespace GitManager.Service
                 epicUpdate.Labels = string.Join(",", labels);
             }
 
-            var res = ExecuteGitLabActionAsync(() => _client.Epics.Edit(groupId, epicUpdate), $"updating epic {epicIid} in group {groupId}").Result;
-            return _mapper.Map<Task<EpicDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Edit(groupId, epicUpdate), $"updating epic {epicIid} in group {groupId}");
+            return _mapper.Map<EpicDto>(res);
         }
 
         public Task<EpicDto> Close(int groupId, int epicIid)

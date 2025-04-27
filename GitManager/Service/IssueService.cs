@@ -40,32 +40,32 @@ namespace GitManager.Service
         }
         #region Issues Implementation
 
-        public Task<List<IssueDto>> GetAll(int projectId)
+        public async Task<List<IssueDto>> GetAll(int projectId)
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
-            var res = ExecuteGitLabActionAsync(() => _client.Issues.ForProject(projectId).ToList(), $"getting issues for project {projectId}").Result;
-            return _mapper.Map<Task<List<IssueDto>>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.ForProject(projectId).ToList(), $"getting issues for project {projectId}");
+            return _mapper.Map<List<IssueDto>>(res);
 
         }
 
-        public Task<List<IssueDto>> Search(int projectId, IssueQueryDto query)
+        public async Task<List<IssueDto>> Search(int projectId, IssueQueryDto query)
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             if (query == null) throw new ArgumentNullException(nameof(query));
             var issueQuery = _mapper.Map<IssueQuery>(query); 
-            var res = ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueQuery).ToList(), $"getting issues for project {projectId} with query").Result;
-            return _mapper.Map<Task<List<IssueDto>>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueQuery).ToList(), $"getting issues for project {projectId} with query");
+            return _mapper.Map<List<IssueDto>>(res);
         }
 
-        public Task<IssueDto> Get(int projectId, int issueIid)
+        public async Task<IssueDto> Get(int projectId, int issueIid)
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             if (issueIid <= 0) throw new ArgumentException("Issue InternalID must be positive.", nameof(issueIid));
-            var res = ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueIid), $"getting issue {issueIid} for project {projectId}").Result;
-            return _mapper.Map<Task<IssueDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueIid), $"getting issue {issueIid} for project {projectId}");
+            return _mapper.Map<IssueDto>(res);
         }
 
-        public Task<IssueDto> Create(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
+        public async Task<IssueDto> Create(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Issue title cannot be empty.", nameof(title));
@@ -89,11 +89,11 @@ namespace GitManager.Service
                 issueCreate.AssigneeIds = assigneeIds.ToArray();
             }
 
-            var res = ExecuteGitLabActionAsync(() => _client.Issues.Create(issueCreate), $"creating issue in project {projectId}").Result;
-            return _mapper.Map<Task<IssueDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Create(issueCreate), $"creating issue in project {projectId}");
+            return _mapper.Map<IssueDto>(res);
         }
 
-        public Task<IssueDto> Update(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
+        public async Task<IssueDto> Update(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             if (issueIid <= 0) throw new ArgumentException("Issue IID must be positive.", nameof(issueIid));
@@ -119,8 +119,8 @@ namespace GitManager.Service
             {
                 issueUpdate.AssigneeIds = assigneeIds.ToArray();
             }
-            var res = ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"updating issue {issueIid} in project {projectId}").Result;
-            return _mapper.Map<Task<IssueDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"updating issue {issueIid} in project {projectId}");
+            return _mapper.Map<IssueDto>(res);
         }
 
         public Task<IssueDto> Close(int projectId, int issueIid)
@@ -133,6 +133,8 @@ namespace GitManager.Service
             return Update(projectId, issueIid, state: "open");
         }
 
+
         #endregion
+
     }
 }

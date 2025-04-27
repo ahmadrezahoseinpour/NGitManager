@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GitManager
+namespace GitManager.Service.Utility
 {
     public static class ServiceCollectionExtensions
     {
@@ -26,8 +26,10 @@ namespace GitManager
             cfg.AddProfile<MappingProfile>());
 
             var gitLabClient = new GitLabClient(gitLabUrl, personalAccessToken);
+
             //services.AddSingleton<IGitLabClient>(GitLabClient.Connect(gitLabUrl, personalAccessToken));
             //services.AddScoped<IGitManagerService, GitManagerService>();
+
             services.AddSingleton<IGitManagerService, GitManagerService>(provider =>
             {
                 var mapper = provider.GetRequiredService<IMapper>();

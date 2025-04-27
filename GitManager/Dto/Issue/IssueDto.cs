@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 using GitManager.Dto.User;
+using System.ComponentModel.DataAnnotations;
 
 namespace GitManager.Dto.Issue
 {
@@ -16,6 +17,8 @@ namespace GitManager.Dto.Issue
         public long IssueId { get; set; }
 
         [JsonPropertyName("project_id")]
+        [Required(ErrorMessage ="شناسه پروژه اجباری است")]
+        [Range(1,int.MaxValue)]
         public long ProjectId { get; set; }
 
         [JsonPropertyName("title")]
@@ -54,37 +57,37 @@ namespace GitManager.Dto.Issue
         [JsonPropertyName("closed_by")]
         public UserDto ClosedBy { get; set; }
 
-        [JsonPropertyName("due_date")]
-        public DateTime? DueDate { get; set; }
+        //[JsonPropertyName("due_date")]
+        //public DateTime? DueDate { get; set; }
 
-        [JsonPropertyName("web_url")]
-        public string WebUrl { get; set; }
+        //[JsonPropertyName("web_url")]
+        //public string WebUrl { get; set; }
 
-        [JsonPropertyName("merge_requests_count")]
-        public int MergeRequestsCount { get; set; }
+        //[JsonPropertyName("merge_requests_count")]
+        //public int MergeRequestsCount { get; set; }
 
         [JsonPropertyName("epic")]
         public IssueEpicDto Epic { get; set; }
 
-        [JsonPropertyName("confidential")]
-        public bool Confidential { get; set; }
+        //[JsonPropertyName("confidential")]
+        //public bool Confidential { get; set; }
 
         [JsonPropertyName("weight")]
         public int? Weight { get; set; }
 
-        [JsonPropertyName("issue_type")]
-        public string IssueType { get; set; }
+        //[JsonPropertyName("issue_type")]
+        //public string IssueType { get; set; }
 
-        [JsonPropertyName("moved_to_id")]
-        public long? MovedToId { get; set; }
+        //[JsonPropertyName("moved_to_id")]
+        //public long? MovedToId { get; set; }
 
-        [JsonPropertyName("references")]
-        public ReferencesDto References { get; set; }
+        //[JsonPropertyName("references")]
+        //public ReferencesDto References { get; set; }
 
-        [JsonPropertyName("user_notes_count")]
-        public int UserNotesCount { get; set; }
+        //[JsonPropertyName("user_notes_count")]
+        //public int UserNotesCount { get; set; }
 
-        [JsonPropertyName("discussion_locked")]
-        public bool DiscussionLocked { get; set; }
+        //[JsonPropertyName("discussion_locked")]
+        //public bool DiscussionLocked { get; set; }
     }
 }

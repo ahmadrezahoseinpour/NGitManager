@@ -47,12 +47,12 @@ namespace GitManager.Service
         //}
 
 
-        public List<UserDto> Search(string searchQuery)
+        public async Task<List<UserDto>> Search(string searchQuery)
         {
             if (string.IsNullOrWhiteSpace(searchQuery)) throw new ArgumentException("Search query cannot be empty.", nameof(searchQuery));
 
             var query = new UserQuery { Search = searchQuery };
-            var res = ExecuteGitLabActionAsync(() => _client.Users.Get(query).ToList(), $"searching users with query '{searchQuery}'").Result;
+            var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(query).ToList(), $"searching users with query '{searchQuery}'");
             return _mapper.Map<List<UserDto>>(res);
         }
 
