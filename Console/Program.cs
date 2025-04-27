@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using GitManager;
 using GitManager.Interface;
 using GitManager.Dto.Issue;
 using GitManager.Dto.Epic;
+using GitManager.Service.Utility;
 
 class Program
 {
@@ -12,33 +12,31 @@ class Program
         var services = new ServiceCollection();
         services.AddGitManager(
             gitLabUrl: "https://git.daneshrefah.ir/",
-            personalAccessToken: "glpat-MVX1sHXHmPf8zhtobEYy"
+            personalAccessToken: "glpat-z1aYassa7QxGgPCdUJSo"
         );
         var serviceProvider = services.BuildServiceProvider();
 
         // Resolve service
         var gitService = serviceProvider.GetRequiredService<IGitManagerService>();
 
-
+        int groupId = 27;
         // Example: Get Git URL for a project (replace with your project ID)
-        int projectId = 190;
-        int issueId = 285;
+        int projectId = 39;
         // Example: Get an issue
-        var testGetIssue = gitService.Issue.Get(
-            projectId,
-            issueId
+        var testLabel = await gitService.Label.GetAllByProject(
+            projectId
         );
         // Example: Get a List issues
-        var iEpic = new EpicQueryDto();
-        var testGetIssues = gitService.Epic.GetAll(
-            projectId,iEpic
-        );
-        string descs = "";
-        foreach (var i in testGetIssues)
+
+
+        //Console.WriteLine($"Issues got successfully.{testGetIssue[0].Author.Name}");
+        string text = "";
+        foreach(var i in testLabel)
         {
-            descs+= i.Description ;
+            text += i + " - ";
+
         }
-        Console.WriteLine($"Issue got successfully.{testGetIssue.Result.Description}");
-        Console.WriteLine($"Issues got successfully.{descs}");
+        Console.WriteLine($"Issues got successfully.{text}");
+        Console.WriteLine($"Issues got successfully.{testLabel}");
     }
 }
