@@ -65,58 +65,61 @@ namespace GitManager.Service
             return _mapper.Map<EpicDto>(res);
         }
 
-        public async Task<EpicDto> Create(int groupId, string title, string description = null, IEnumerable<string> labels = null)
+        public async Task<EpicDto> Create(EpicDto dto)
         {
-            if (groupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(groupId));
-            if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Epic title cannot be empty.", nameof(title));
+            if (dto.GroupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(dto.GroupId));
+            if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Epic title cannot be empty.", nameof(dto.Title));
 
             var epicCreate = new EpicCreate
             {
-                Title = title,
-                Description = description
+                Title = dto.Title,
+                Description = dto.Description,
+                Labels = dto.Labels
             };
 
-            if (labels?.Any() == true)
-            {
-                epicCreate.Labels = string.Join(",", labels);
-            }
+            //if (labels?.Any() == true)
+            //{
+            //    epicCreate.Labels = string.Join(",", labels);
+            //}
 
-            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Create(groupId, epicCreate), $"creating epic in group {groupId}");
+            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Create(dto.GroupId, epicCreate), $"creating epic in group {dto.GroupId}");
             return _mapper.Map<EpicDto>(res);
         }
 
-        public async Task<EpicDto> Update(int groupId, int epicIid, string title = null, string description = null, string stateEvent = null, IEnumerable<string> labels = null)
+        public async Task<EpicDto> Update(EpicDto dto)
         {
-            if (groupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(groupId));
-            if (epicIid <= 0) throw new ArgumentException("Epic IID must be positive.", nameof(epicIid));
+            if (dto.GroupId<= 0) throw new ArgumentException("Group ID must be positive.", nameof(dto.GroupId));
+            if (dto.EpicId<= 0) throw new ArgumentException("Epic IID must be positive.", nameof(dto.EpicId));
 
             var epicUpdate = new EpicEdit
             {
-                EpicId = epicIid, // NGitLab uses EpicId here which corresponds to Iid
-                Title = title,
-                Description = description,
-                State = stateEvent // Map to State property in EpicEdit ("close" or "reopen")
+                EpicId = dto.EpicId,
+                Title = dto.Title,
+                Description = dto.Description,
+                State = dto.State,
+                Labels = dto.Labels
             };
 
-            if (labels != null)
-            {
-                epicUpdate.Labels = string.Join(",", labels);
-            }
+            //if (labels != null)
+            //{
+            //    epicUpdate.Labels = string.Join(",", labels);
+            //}
 
-            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Edit(groupId, epicUpdate), $"updating epic {epicIid} in group {groupId}");
+            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Edit(dto.GroupId, epicUpdate), $"updating epic {dto.EpicId} in group {dto.GroupId}");
             return _mapper.Map<EpicDto>(res);
         }
 
-        public Task<EpicDto> Close(int groupId, int epicIid)
+        public Task<EpicDto> Close(EpicDto dto)
         {
+            dto.State = "close";
             // Use UpdateEpicAsync with the correct state event for closing
-            return Update(groupId, epicIid, stateEvent: "close");
+            return Update(dto);
         }
 
-        public Task<EpicDto> Open(int groupId, int epicIid)
+        public Task<EpicDto> Open(EpicDto dto)
         {
-            // Use UpdateEpicAsync with the correct state event for closing
-            return Update(groupId, epicIid, stateEvent: "open");
+            dto.State = "open";
+            return Update(dto);
         }
 
         #endregion

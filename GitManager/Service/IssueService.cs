@@ -7,11 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GitManager.Service
 {
-    internal class IssueService:IIssueService
+    internal class IssueService : IIssueService
     {
 
         private readonly GitLabClient _client;
@@ -33,7 +34,7 @@ namespace GitManager.Service
             {
                 throw new InvalidOperationException($"GitLab API error during '{operationDescription}': {ex.Message} (StatusCode: {ex.StatusCode})", ex);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 throw new InvalidOperationException($"An unexpected error occurred during '{operationDescription}': {ex.Message}", ex);
             }
@@ -52,7 +53,7 @@ namespace GitManager.Service
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             if (query == null) throw new ArgumentNullException(nameof(query));
-            var issueQuery = _mapper.Map<IssueQuery>(query); 
+            var issueQuery = _mapper.Map<IssueQuery>(query);
             var res = await ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueQuery).ToList(), $"getting issues for project {projectId} with query");
             return _mapper.Map<List<IssueDto>>(res);
         }
@@ -65,72 +66,80 @@ namespace GitManager.Service
             return _mapper.Map<IssueDto>(res);
         }
 
-        public async Task<IssueDto> Create(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
+        public async Task<IssueDto> Create(IssueDto dto)
         {
-            if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
-            if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Issue title cannot be empty.", nameof(title));
+            if (dto.ProjectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(dto.ProjectId));
+            if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Issue title cannot be empty.", nameof(dto.Title));
 
             var issueCreate = new IssueCreate
             {
-                ProjectId = projectId,
-                Title = title,
-                Description = description,
-                EpicId = epicId,
-                Weight = weight
-
+                Title = dto.Title,
+                Description = dto.Description,
+                AssigneeId = dto.AssigneeId,
+                AssigneeIds = dto.AssigneeIds,
+                MileStoneId = dto.MileStoneId,
+                Labels = dto.Labels,
+                Confidential = dto.Confidential,
+                DueDate = dto.DueDate,
+                EpicId = dto.EpicId,
+                Weight = dto.Weight
             };
 
-            if (labels?.Any() == true)
-            {
-                issueCreate.Labels = string.Join(",", labels);
-            }
-            if (assigneeIds?.Any() == true)
-            {
-                issueCreate.AssigneeIds = assigneeIds.ToArray();
-            }
+            //if (labels?.Any() == true)
+            //{
+            //    issueCreate.Labels = string.Join(",", labels);
+            //}
+            //if (assigneeIds?.Any() == true)
+            //{
+            //    issueCreate.AssigneeIds = assigneeIds.ToArray();
+            //}
 
-            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Create(issueCreate), $"creating issue in project {projectId}");
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Create(issueCreate), $"creating issue in project {dto.ProjectId}");
             return _mapper.Map<IssueDto>(res);
         }
 
-        public async Task<IssueDto> Update(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null)
+        public async Task<IssueDto> Update(IssueDto dto)
         {
-            if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
-            if (issueIid <= 0) throw new ArgumentException("Issue IID must be positive.", nameof(issueIid));
-            if (epicId <= 0) throw new ArgumentException("Epic ID must be positive.", nameof(epicId));
+            if (dto.ProjectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(dto.ProjectId));
+            if (dto.IssueId <= 0) throw new ArgumentException("Issue IID must be positive.", nameof(dto.IssueId));
+            if (dto.EpicId <= 0) throw new ArgumentException("Epic ID must be positive.", nameof(dto.EpicId));
 
             var issueUpdate = new IssueEdit
             {
-                ProjectId = projectId,
-                IssueId = issueIid, 
-                Title = title, 
-                Description = description,
-                State = state, 
-                EpicId = epicId,
-                Weight = weight
-
+                Title = dto.Title,
+                Description = dto.Description,
+                AssigneeId = dto.AssigneeId,
+                AssigneeIds = dto.AssigneeIds,
+                MilestoneId = dto.MileStoneId,
+                Labels = dto.Labels,
+                Confidential = dto.Confidential,
+                DueDate = dto.DueDate,
+                EpicId = dto.EpicId,
+                Weight = dto.Weight
             };
 
-            if (labels != null)
-            {
-                issueUpdate.Labels = string.Join(",", labels);
-            }
-            if (assigneeIds != null)
-            {
-                issueUpdate.AssigneeIds = assigneeIds.ToArray();
-            }
-            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"updating issue {issueIid} in project {projectId}");
+            //if (labels != null)
+            //{
+            //    issueUpdate.Labels = string.Join(",", labels);
+            //}
+            //if (assigneeIds != null)
+            //{
+            //    issueUpdate.AssigneeIds = assigneeIds.ToArray();
+            //}
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"updating issue {dto.IssueId} in project {dto.ProjectId}");
             return _mapper.Map<IssueDto>(res);
         }
 
-        public Task<IssueDto> Close(int projectId, int issueIid)
+        public Task<IssueDto> Close(IssueDto dto)
         {
-            return Update(projectId, issueIid, state: "close");
+            dto.State = "close";
+            return Update(dto);
         }
 
-        public Task<IssueDto> Open(int projectId, int issueIid)
+        public Task<IssueDto> Open(IssueDto dto)
         {
-            return Update(projectId, issueIid, state: "open");
+            dto.State = "open";
+            return Update(dto);
         }
 
 
