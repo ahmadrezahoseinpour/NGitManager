@@ -1,14 +1,13 @@
 ﻿@page "/issues"
 @page "/issues/{ProjectId:int}"
 @using GitManager.Interface
-@inject IIssueService IssueService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 @* <a href="/issues/create/@projectId" class="btn btn-primary">Create New Issue</a> *@
-<h3>موارد برای پروژه @(ProjectId > 0 ? ProjectId.ToString() : "نا مشخص ")</h3>
+<h3>@(ProjectId > 0 ? $"موارد برای پروژه {ProjectId.ToString()}" : "ابتدا پروژه را جست و جو کنید")</h3>
 
-<div class="mb-12">
+<div class="mb-5">
     <EditForm Model="Issue" OnValidSubmit="@SearchIssues" FormName="searchIssues">
         <DataAnnotationsValidator />
         <div class="row g-3 align-items-end director">
@@ -37,7 +36,7 @@
 </div>
 
 
-<table class="table">
+<table class="table mt-3">
     <thead>
         <tr class="director">
             <th>شناسه</th>
@@ -60,15 +59,15 @@
                         @* <a href="/issues/edit/@ProjectId/@issue.IssueId" class="btn btn-warning">Edit</a> *@
                         @if (issue.State == "opened")
                         {
-                            <button class="btn btn-danger" @onclick="() => CloseIssue(Convert.ToInt32(issue.IssueId))">غیرفعال</button>
+                            <button class="btn btn-danger" @onclick="() => CloseIssue()">غیرفعال</button>
                         }
                         else if (issue.State == "closed")
                         {
-                            <button class="btn btn-success" @onclick="() => OpenIssue(Convert.ToInt32(issue.IssueId))">فعالسازی</button>
+                            <button class="btn btn-success" @onclick="() => OpenIssue()">فعالسازی</button>
                         }
                     </td>
                     <td>
-                        <button @onclick="ToggleDetails" class="btn btn-primary">@(showDetails ? "Less" : "More")</button>
+                        <button @onclick="ShowEditDialog" class="btn btn-primary">مشاهده</button>
                     </td>
                 </tr>
             }
@@ -77,10 +76,6 @@
     </tbody>
 </table>
 
-@if (showDetails)
-{
-
-}
 <h3>ایجاد مورد جدید برای پروژه @(ProjectId > 0 ? ProjectId.ToString() : "نا مشخص")</h3>
 
 <form @onsubmit="CreateIssue">
@@ -126,33 +121,111 @@
 @* <a href="/issues/edit/@ProjectId/@IssueIid" class="btn btn-warning">Edit</a> *@
 
 
+<!-- #region Dialogs-->
+@if (_editDialog)
+{
+
+    <div class="dialog" style="display:@ModalDisplay">
+        <EditForm>
+            <div class="col-md-3">
+                <InputText id="title" @bind-Value="Issue.Title" class="form-control" placeholder="عنوان را وارد کنید" tabindex="1" required />
+            </div>
+            <div class="col-md-3">
+                <InputText id="description" @bind-Value="Issue.Description" class="form-control" placeholder="توضیحات را وارد کنید" tabindex="2" required />
+            </div>
+            <div class="col-md-6">
+                <select multiple class="form-control" style="height:200px;" @onchange="OnSelectionChanged">
+                    @foreach (var labelName in Labels)
+                    {
+                        <option value="@labelName" selected="@SelectedLabels.Contains(labelName)">@labelName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select @bind="Issue.MileStoneId">
+                    <option value="">-- انتخاب کنید --</option>
+                    <option value="1">باز</option>
+                    <option value="2">بسته</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select @bind="Issue.AssigneeId">
+                    <option value="">-- انتخاب کنید --</option>
+                    <option value="1">باز</option>
+                    <option value="2">بسته</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select @bind="Issue.AssigneeIds">
+                    <option value="">-- انتخاب کنید --</option>
+                    <option value="1">باز</option>
+                    <option value="2">بسته</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select @bind="Issue.AuthorId">
+                    <option value="">-- انتخاب کنید --</option>
+                    <option value="1">باز</option>
+                    <option value="2">بسته</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select @bind="Issue.State">
+                    <option value="">-- انتخاب کنید --</option>
+                    <option value="1">باز</option>
+                    <option value="2">بسته</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <InputNumber id="projectId" @bind-Value="Issue.ProjectId" class="form-control" placeholder="شناسه پروژه را وارد کنید" tabindex="1" required />
+
+            </div>
+
+            <button @onclick="SubmitEditDialog" class="btn btn-success">تایید</button>
+            <button @onclick="CloseEditDialog" class="btn btn-close">انصراف</button>
+        </EditForm>
+    </div>
+}
+
+
+<!-- #endregion -->
+
+
 
 <style>
-    *{
+    * {
         direction: rtl;
     }
+
     .director {
         direction: rtl;
     }
 
-    .btn{
-        min-width:80px;
+    .btn {
+        min-width: 80px;
     }
 
-    .form-group {
-        position: relative;
-        margin-bottom: 1.5rem; /* Ensure space for validation message */
+    .dialog {
+        z-index: 1000;
+        max-width: 500px;
+        max-height: 700px;
+        justify-content: center;
+        align-items: center;
     }
+
+    /* .form-group { */
+    /*     position: relative; */
+    /*     margin-bottom: 1.5rem; */
+    /* } */
 
     .validation-message {
-        color: red;
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
-        display: block;
-        min-height: 1.5rem; /* Reserve space to prevent layout shift */
+        position: absolute;
+        max-width: 230px;
+        font-size: 14px;
     }
 
-    .form-control:invalid {
-        border-color: red;
-    }
+    /* .form-control:invalid { */
+    /*     border-color: red; */
+
+    /* } */
 </style>

@@ -23,7 +23,7 @@
             @foreach (var epic in EpicsList)
             {
                 <tr>
-                    <td>@epic.EpicIid</td>
+                    <td>@epic.EpicId</td>
                     <td>@epic.Title</td>
                     <td>@epic.State</td>
                     <td>
@@ -31,11 +31,11 @@
                         @* <a href="/issues/edit/@groupid/@epic.EpicIid" class="btn btn-warning">Edit</a> *@
                         @if (epic.State.ToString() == EpicStateDto.opened.ToString())
                         {
-                            <button class="btn btn-danger" @onclick="() => CloseEpic(Convert.ToInt32(epic.EpicIid))">Close</button>
+                            <button class="btn btn-danger" @onclick="() => CloseEpic(Epic)">Close</button>
                         }
                         else if (epic.State.ToString() == EpicStateDto.closed.ToString())
                         {
-                            <button class="btn btn-success" @onclick="() => OpenEpic(Convert.ToInt32(epic.EpicIid))">Reopen</button>
+                            <button class="btn btn-success" @onclick="() => OpenEpic(Epic)">Reopen</button>
                         }
                     </td>
                 </tr>
@@ -78,7 +78,7 @@
 
 
 
-<h3>Epic @Epic.EpicIid: @Epic.Title</h3>
+<h3>Epic @Epic.EpicId: @Epic.Title</h3>
 
 <div>
     <p><strong>State:</strong> @Epic.State</p>

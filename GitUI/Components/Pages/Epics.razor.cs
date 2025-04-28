@@ -12,6 +12,8 @@ namespace GitUI.Components.Pages
 
         public List<EpicDto> EpicsList { get; set; } = new List<EpicDto>();
         private EpicDto Epic { get; set; }
+        private EpicDto UpdateDto { get; set; }
+        private EpicDto AddDto { get; set; }
 
         private string Title { get; set; }
         private string Description { get; set; }
@@ -31,17 +33,17 @@ namespace GitUI.Components.Pages
             //Epic = await EpicService.Get(groupid, EpicIid);
         }
 
-        private async Task CloseEpic(int epicIid)
+        private async Task CloseEpic(EpicDto dto)
         {
-            await EpicService.Close(groupid, epicIid);
+            await EpicService.Close(dto);
             EpicQueryDto eQueryDto = new();
             EpicsList = await EpicService.Search(groupid, eQueryDto);
             StateHasChanged();
         }
 
-        private async Task OpenEpic(int epicIid)
+        private async Task OpenEpic(EpicDto dto)
         {
-            await EpicService.Open(groupid, epicIid);
+            await EpicService.Open(dto);
             EpicQueryDto eQueryDto = new();
             EpicsList = await EpicService.Search(groupid, eQueryDto);
             StateHasChanged();
@@ -49,14 +51,14 @@ namespace GitUI.Components.Pages
 
         private async Task CreateEpic()
         {
-            var newepic = await EpicService.Create(groupid, Title, Description);
-            NavigationManager.NavigateTo($"/epics/{groupid}/{newepic.EpicIid}");
+            var newepic = await EpicService.Create(AddDto);
+            //NavigationManager.NavigateTo($"/epics/{groupid}/{newepic.EpicId}");
         }
 
         private async Task UpdateEpic()
         {
-            var updatedepic = await EpicService.Update(groupid, epicIid, title: Title, description: Description);
-            NavigationManager.NavigateTo($"/epics/{groupid}/{updatedepic.EpicIid}");
+            var updatedepic = await EpicService.Update(UpdateDto);
+            //NavigationManager.NavigateTo($"/epics/{groupid}/{updatedepic.EpicId}");
         }
 
 
