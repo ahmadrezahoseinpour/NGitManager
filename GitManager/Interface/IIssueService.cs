@@ -46,54 +46,38 @@ namespace GitManager.Interface
         /// <summary>
         /// Creates a new issue in a project.
         /// </summary>
-        /// <param name="projectId">The ID or URL-encoded path of the project.</param>
-        /// <param name="title">The title of the issue.</param>
-        /// <param name="description">The description of the issue.</param>
-        /// <param name="labels">Optional labels for the issue.</param>
-        /// <param name="assigneeIds">Optional IDs of users to assign.</param>
         /// <returns>The created issue.</returns>
         /// <exception cref="ArgumentException">Thrown if required parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<IssueDto> Create(int projectId, string title, string description, int epicId, int weight, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
+        Task<IssueDto> Create(IssueDto dto);
 
         /// <summary>
         /// Updates an existing issue.
         /// </summary>
-        /// <param name="projectId">The ID or URL-encoded path of the project.</param>
-        /// <param name="issueIid">The internal ID (Iid) of the issue to update.</param>
-        /// <param name="title">Optional new title.</param>
-        /// <param name="description">Optional new description.</param>
-        /// <param name="state">Optional new state event ("close" or "reopen").</param>
-        /// <param name="labels">Optional collection of labels to set (replaces existing labels).</param>
-        /// <param name="assigneeIds">Optional collection of user IDs to assign (replaces existing assignees).</param>
         /// <returns>The updated issue.</returns>
         /// <exception cref="ArgumentException">Thrown if identifying parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<IssueDto> Update(int projectId, int issueIid, int epicId = 0, int weight = 0, string title = null, string description = null, string state = null, IEnumerable<string> labels = null, IEnumerable<long> assigneeIds = null);
+        Task<IssueDto> Update(IssueDto dto);
 
         /// <summary>
         /// Closes an existing issue.
         /// </summary>
-        /// <param name="projectId">The ID or URL-encoded path of the project.</param>
-        /// <param name="issueIid">The internal ID (Iid) of the issue to close.</param>
         /// <returns>The closed issue.</returns>
         /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<IssueDto> Close(int projectId, int issueIid);
+        Task<IssueDto> Close(IssueDto dto);
 
         /// <summary>
         /// Opens an existing issue.
         /// </summary>
-        /// <param name="projectId">The ID or URL-encoded path of the project.</param>
-        /// <param name="issueIid">The internal ID (Iid) of the issue to close.</param>
         /// <returns>The closed issue.</returns>
         /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<IssueDto> Open(int projectId, int issueIid);
+        Task<IssueDto> Open(IssueDto dto);
 
         #endregion
     }

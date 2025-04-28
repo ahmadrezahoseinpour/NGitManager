@@ -46,52 +46,38 @@ namespace GitManager.Interface
         /// <summary>
         /// Creates a new epic in a group.
         /// </summary>
-        /// <param name="groupId">The ID or URL-encoded path of the group.</param>
-        /// <param name="title">The title of the epic.</param>
-        /// <param name="description">Optional description of the epic.</param>
-        /// <param name="labels">Optional labels for the epic.</param>
         /// <returns>The created epic.</returns>
         /// <exception cref="ArgumentException">Thrown if required parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<EpicDto> Create(int groupId, string title, string description = null, IEnumerable<string> labels = null);
+        Task<EpicDto> Create(EpicDto dto);
 
         /// <summary>
         /// Updates an existing epic.
         /// </summary>
-        /// <param name="groupId">The ID or URL-encoded path of the group.</param>
-        /// <param name="epicIid">The internal ID (Iid) of the epic to update.</param>
-        /// <param name="title">Optional new title.</param>
-        /// <param name="description">Optional new description.</param>
-        /// <param name="stateEvent">Optional state event ("close" or "reopen").</param>
-        /// <param name="labels">Optional collection of labels to set (replaces existing labels).</param>
         /// <returns>The updated epic.</returns>
         /// <exception cref="ArgumentException">Thrown if identifying parameters are invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<EpicDto> Update(int groupId, int epicIid, string title = null, string description = null, string stateEvent = null, IEnumerable<string> labels = null);
+        Task<EpicDto> Update(EpicDto dto);
 
         /// <summary>
         /// Closes an existing epic.
         /// </summary>
-        /// <param name="groupId">The ID or URL-encoded path of the group.</param>
-        /// <param name="epicIid">The internal ID (Iid) of the epic to close.</param>
         /// <returns>The closed epic.</returns>
         /// <exception cref="ArgumentException">Thrown if groupId or epicIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<EpicDto> Close(int groupId, int epicIid);
+        Task<EpicDto> Close(EpicDto dto);
 
         /// <summary>
         /// Opens an existing epic.
         /// </summary>
-        /// <param name="groupId">The ID or URL-encoded path of the group.</param>
-        /// <param name="epicIid">The internal ID (Iid) of the epic to close.</param>
         /// <returns>The closed epic.</returns>
         /// <exception cref="ArgumentException">Thrown if groupId or epicIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<EpicDto> Open(int groupId, int epicIid);
+        Task<EpicDto> Open(EpicDto dto);
 
         #endregion
     }
