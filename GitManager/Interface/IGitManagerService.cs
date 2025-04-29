@@ -7,6 +7,6 @@ namespace GitManager.Interface
         public IIssueService Issue { get; }
         public IEpicService Epic { get; }
         public IUserService User { get; }
-        public ILabelService Label{ get; }
+        public ICommonService Common { get; }
     }
 }
