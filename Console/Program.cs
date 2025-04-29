@@ -23,7 +23,7 @@ class Program
         // Example: Get Git URL for a project (replace with your project ID)
         int projectId = 39;
         // Example: Get an issue
-        var testLabel = await gitService.Label.GetAllByProject(
+        var testLabel = await gitService.Label.GetLabelsByProject(
             projectId
         );
         // Example: Get a List issues
