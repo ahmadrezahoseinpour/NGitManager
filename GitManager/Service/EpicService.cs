@@ -74,7 +74,7 @@ namespace GitManager.Service
             {
                 Title = dto.Title,
                 Description = dto.Description,
-                Labels = dto.Labels
+                Labels = string.Join(",", dto.Labels)
             };
 
             //if (labels?.Any() == true)
@@ -89,15 +89,15 @@ namespace GitManager.Service
         public async Task<EpicDto> Update(EpicDto dto)
         {
             if (dto.GroupId<= 0) throw new ArgumentException("Group ID must be positive.", nameof(dto.GroupId));
-            if (dto.EpicId<= 0) throw new ArgumentException("Epic IID must be positive.", nameof(dto.EpicId));
+            if (dto.EpicIid<= 0) throw new ArgumentException("Epic IID must be positive.", nameof(dto.EpicIid));
 
             var epicUpdate = new EpicEdit
             {
-                EpicId = dto.EpicId,
+                EpicId = dto.EpicIid,
                 Title = dto.Title,
                 Description = dto.Description,
-                State = dto.State,
-                Labels = dto.Labels
+                State = dto.State.ToString(),
+                Labels = string.Join(",", dto.Labels)
             };
 
             //if (labels != null)
@@ -105,20 +105,20 @@ namespace GitManager.Service
             //    epicUpdate.Labels = string.Join(",", labels);
             //}
 
-            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Edit(dto.GroupId, epicUpdate), $"updating epic {dto.EpicId} in group {dto.GroupId}");
+            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Edit(dto.GroupId, epicUpdate), $"updating epic {dto.EpicIid} in group {dto.GroupId}");
             return _mapper.Map<EpicDto>(res);
         }
 
         public Task<EpicDto> Close(EpicDto dto)
         {
-            dto.State = "close";
+            dto.State = EpicState.closed;
             // Use UpdateEpicAsync with the correct state event for closing
             return Update(dto);
         }
 
         public Task<EpicDto> Open(EpicDto dto)
         {
-            dto.State = "open";
+            dto.State = EpicState.opened;
             return Update(dto);
         }
 

@@ -44,8 +44,16 @@ namespace GitManager.Service
         public async Task<List<IssueDto>> GetAll(int projectId)
         {
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
-            var res = await ExecuteGitLabActionAsync(() => _client.Issues.ForProject(projectId).ToList(), $"getting issues for project {projectId}");
-            return _mapper.Map<List<IssueDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.ForProject(projectId), $"getting issues for project {projectId}");
+            if (res.Any())
+            {
+                res.ToList();
+                return _mapper.Map<List<IssueDto>>(res);
+            }
+            else
+            {
+                return new List<IssueDto>();
+            }
 
         }
 
@@ -54,8 +62,16 @@ namespace GitManager.Service
             if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
             if (query == null) throw new ArgumentNullException(nameof(query));
             var issueQuery = _mapper.Map<IssueQuery>(query);
-            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueQuery).ToList(), $"getting issues for project {projectId} with query");
-            return _mapper.Map<List<IssueDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueQuery), $"getting issues for project {projectId} with query");
+            if (res.Any())
+            {
+                res.ToList();
+                return _mapper.Map<List<IssueDto>>(res);
+            }
+            else
+            {
+                return new List<IssueDto>();
+            }
         }
 
         public async Task<IssueDto> Get(int projectId, int issueIid)
@@ -71,17 +87,22 @@ namespace GitManager.Service
             if (dto.ProjectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(dto.ProjectId));
             if (string.IsNullOrWhiteSpace(dto.Title)) throw new ArgumentException("Issue title cannot be empty.", nameof(dto.Title));
 
+            var labelStr = "";
+            if (dto.Labels != null)
+            {
+                labelStr = string.Join(",", dto.Labels);
+            }
             var issueCreate = new IssueCreate
             {
                 Title = dto.Title,
                 Description = dto.Description,
-                AssigneeId = dto.AssigneeId,
-                AssigneeIds = dto.AssigneeIds,
-                MileStoneId = dto.MileStoneId,
-                Labels = dto.Labels,
+                AssigneeId = dto.Assignee.Id,
+                AssigneeIds = dto.Assignees.Select(x => x.Id).ToArray(),
+                MileStoneId = dto.Milestone.Id,
+                Labels = labelStr,
                 Confidential = dto.Confidential,
                 DueDate = dto.DueDate,
-                EpicId = dto.EpicId,
+                EpicId = dto.Epic.Id,
                 Weight = dto.Weight
             };
 
@@ -102,26 +123,27 @@ namespace GitManager.Service
         {
             if (dto.ProjectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(dto.ProjectId));
             if (dto.IssueId <= 0) throw new ArgumentException("Issue IID must be positive.", nameof(dto.IssueId));
-            if (dto.EpicId <= 0) throw new ArgumentException("Epic ID must be positive.", nameof(dto.EpicId));
+            if (dto.Epic.Id <= 0) throw new ArgumentException("Epic ID must be positive.", nameof(dto.Epic.Id));
 
+            var labelStr = "";
+            if (dto.Labels != null)
+            {
+                labelStr = string.Join(",", dto.Labels);
+            }
             var issueUpdate = new IssueEdit
             {
                 Title = dto.Title,
                 Description = dto.Description,
-                AssigneeId = dto.AssigneeId,
-                AssigneeIds = dto.AssigneeIds,
-                MilestoneId = dto.MileStoneId,
-                Labels = dto.Labels,
+                AssigneeId = dto.Assignee.Id,
+                AssigneeIds = dto.Assignees.Select(x => x.Id).ToArray(),
+                MilestoneId = dto.Milestone.Id,
+                Labels = labelStr,
                 Confidential = dto.Confidential,
                 DueDate = dto.DueDate,
-                EpicId = dto.EpicId,
+                EpicId = dto.Epic.Id,
                 Weight = dto.Weight
             };
 
-            //if (labels != null)
-            //{
-            //    issueUpdate.Labels = string.Join(",", labels);
-            //}
             //if (assigneeIds != null)
             //{
             //    issueUpdate.AssigneeIds = assigneeIds.ToArray();
@@ -141,7 +163,6 @@ namespace GitManager.Service
             dto.State = "open";
             return Update(dto);
         }
-
 
         #endregion
 
