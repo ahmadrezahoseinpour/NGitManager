@@ -40,10 +40,10 @@ namespace GitManager.Service.Utility
                 var mapper = provider.GetRequiredService<IMapper>();
                 return new IssueService(mapper, gitLabClient);
             });
-            services.AddSingleton<ILabelService, LabelService>(provider =>
+            services.AddSingleton<ICommonService, Service.CommonService>(provider =>
             {
                 var mapper = provider.GetRequiredService<IMapper>();
-                return new LabelService(mapper, gitLabClient);
+                return new Service.CommonService(mapper, gitLabClient);
             });
             services.AddSingleton<IUserService, UserService>(provider =>
             {
