@@ -117,7 +117,7 @@ namespace GitUI.Components.Pages
         {
             try
             {
-                await IssueService.Close(UpdateDto);
+                //await IssueService.Close(UpdateDto);
                 await GetAllIssue(ProjectId);
                 StateHasChanged();
             }
@@ -131,7 +131,7 @@ namespace GitUI.Components.Pages
         {
             try
             {
-                await IssueService.Open(UpdateDto);
+                //await IssueService.Open();
                 await GetAllIssue(ProjectId);
                 StateHasChanged();
             }

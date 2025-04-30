@@ -153,7 +153,7 @@ else if (HasSearched)
                                 <InputText id="description" @bind-Value="Issue.Description" class="form-control" placeholder="توضیحات را وارد کنید" tabindex="2" required />
                             </div>
                             <div class="mb-3">
-                                <label for="labelSelect" class="form-label">Label</label>
+                                <label for="labelSelect" class="form-label">برچسب</label>
                                 <select multiple class="form-control" style="height:200px;" @onchange="OnLabelSelectChanged">
                                     <option value="0">-- انتخاب کنید --</option>
                                     @if (Labels.Any())
@@ -166,7 +166,7 @@ else if (HasSearched)
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="milestoneSelect" class="form-label">Milestone</label>
+                                <label for="milestoneSelect" class="form-label">موعد (Milestone)</label>
                                 <select id="milestoneSelect" class="form-select" @bind="SelectedMilestone">
                                     <option value="0">-- انتخاب کنید --</option>
                                     @if (Milestones.Any())
@@ -178,31 +178,32 @@ else if (HasSearched)
                                     }
                                 </select>
                             </div>
+                            @* <div class="col-md-3"> *@
+                            @*     <select @bind="Issue.Assignee"> *@
+                            @*         <option value="">-- انتخاب کنید --</option> *@
+                            @*         <option value="1">باز</option> *@
+                            @*         <option value="2">بسته</option> *@
+                            @*     </select> *@
+                            @* </div> *@
+                            @* <div class="col-md-3"> *@
+                            @*     <select multiple class="form-control" style="height:200px;" @onchange="OnAssigneeSelectChanged"> *@
+                            @*         @foreach (var labelName in Labels) *@
+                            @*         { *@
+                            @*             <option value="@labelName" selected="@SelectedLabels.Contains(labelName)">@labelName</option> *@
+                            @*         } *@
+                            @*     </select> *@
+                            @* </div> *@
+                            @* <div class="col-md-3"> *@
+                            @*     <select @bind="Issue.Author"> *@
+                            @*         <option value="">-- انتخاب کنید --</option> *@
+                            @*         <option value="1">باز</option> *@
+                            @*         <option value="2">بسته</option> *@
+                            @*     </select> *@
+                            @* </div> *@
                             <div class="col-md-3">
-                                <select @bind="Issue.Assignee">
-                                    <option value="">-- انتخاب کنید --</option>
-                                    <option value="1">باز</option>
-                                    <option value="2">بسته</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select multiple class="form-control" style="height:200px;" @onchange="OnAssigneeSelectChanged">
-                                    @foreach (var labelName in Labels)
-                                    {
-                                        <option value="@labelName" selected="@SelectedLabels.Contains(labelName)">@labelName</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select @bind="Issue.Author">
-                                    <option value="">-- انتخاب کنید --</option>
-                                    <option value="1">باز</option>
-                                    <option value="2">بسته</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
+                                <label for="stateSelect" class="form-label">وضعیت</label>
                                 <select @bind="Issue.State">
-                                    <option value="">-- انتخاب کنید --</option>
+                                    <option value="0">-- انتخاب کنید --</option>
                                     <option value="1">باز</option>
                                     <option value="2">بسته</option>
                                 </select>
