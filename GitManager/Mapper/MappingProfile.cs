@@ -2,6 +2,7 @@
 using GitManager.Dto.Epic;
 using GitManager.Dto.Issue;
 using GitManager.Dto.User;
+using NGitLab;
 using NGitLab.Models;
 
 namespace GitManager.Mapper
@@ -12,6 +13,7 @@ namespace GitManager.Mapper
         {
             CreateMap<User, UserDto>();
             CreateMap<Identity, IdentityDto>();
+            CreateMap<UserQuery, UserQueryDto>();
 
             CreateMap<Issue, IssueDto>();
             CreateMap<Author, AuthorDto>();
