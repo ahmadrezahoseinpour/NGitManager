@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using GitManager.Dto.Epic;
+using GitManager.Dto.Issue;
 using GitManager.Interface;
 using NGitLab;
 using NGitLab.Models;
@@ -53,8 +54,16 @@ namespace GitManager.Service
             if (groupId <= 0) throw new ArgumentException("Group ID must be positive.", nameof(groupId));
             if (query == null) throw new ArgumentNullException(nameof(query));
             var epicQuery = _mapper.Map<EpicQuery>(query);
-            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Get(groupId, epicQuery).ToList(), $"getting epics for group {groupId} with query");
-            return _mapper.Map<List<EpicDto>>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Epics.Get(groupId, epicQuery), $"getting epics for group {groupId} with query");
+            if (res.Any())
+            {
+                res.ToList();
+                return _mapper.Map<List<EpicDto>>(res);
+            }
+            else
+            {
+                return new List<EpicDto>();
+            }
         }
 
         public async Task<EpicDto> GetById(int groupId, int epicIid)
@@ -112,7 +121,6 @@ namespace GitManager.Service
         public Task<EpicDto> Close(EpicDto dto)
         {
             dto.State = EpicState.closed;
-            // Use UpdateEpicAsync with the correct state event for closing
             return Update(dto);
         }
 
