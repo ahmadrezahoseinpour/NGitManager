@@ -3,6 +3,7 @@ using GitManager.Interface;
 using GitManager.Dto.Issue;
 using GitManager.Dto.Epic;
 using GitManager.Service.Utility;
+using GitManager.Dto.User;
 
 class Program
 {
@@ -23,20 +24,16 @@ class Program
         // Example: Get Git URL for a project (replace with your project ID)
         int projectId = 39;
         // Example: Get an issue
-        var testLabel = await gitService.Label.GetLabelsByProject(
-            projectId
-        );
-        // Example: Get a List issues
 
 
-        //Console.WriteLine($"Issues got successfully.{testGetIssue[0].Author.Name}");
-        string text = "";
-        foreach(var i in testLabel)
-        {
-            text += i + " - ";
+        var test1 = await gitService.Issue.GetAll(299);
+        var issue = new IssueDto() { ProjectId = 299, Title = "first Issue" };
+        issue.Assignee = new();
+        issue.Assignee.Id = 35;
+        var test2 = await gitService.Issue.Close(299,11);
 
-        }
-        Console.WriteLine($"Issues got successfully.{text}");
-        Console.WriteLine($"Issues got successfully.{testLabel}");
+
+        if (test2) {
+            Console.WriteLine($"Issues 1 successfully opened."); }
     }
 }
