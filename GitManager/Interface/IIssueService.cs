@@ -62,13 +62,13 @@ namespace GitManager.Interface
         Task<IssueDto> Update(IssueDto dto);
 
         /// <summary>
-        /// Closes an existing issue.
+        /// Closes an existing issue just by issue ID.
         /// </summary>
         /// <returns>The closed issue.</returns>
         /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<IssueDto> Close(IssueDto dto);
+        Task<bool> Close(int projectId, int issueIid);
 
         /// <summary>
         /// Opens an existing issue.
@@ -77,7 +77,7 @@ namespace GitManager.Interface
         /// <exception cref="ArgumentException">Thrown if projectId or issueIid is invalid.</exception>
         /// <exception cref="GitLabException">Thrown if the GitLab API returns an error.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<IssueDto> Open(IssueDto dto);
+        Task<bool> Open(int projectId, int issueIid);
 
         #endregion
     }

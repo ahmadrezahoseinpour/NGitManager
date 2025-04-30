@@ -6,6 +6,7 @@ using NGitLab.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -28,7 +29,13 @@ namespace GitManager.Service
         {
             try
             {
-                return await Task.Run(action);
+                var res = await Task.Run(action);
+
+                return res;
+            }
+            catch (GitLabException ex) when (ex.StatusCode == HttpStatusCode.NotFound) {
+                Console.WriteLine("Project not found.");
+                return default;
             }
             catch (GitLabException ex)
             {
@@ -40,6 +47,7 @@ namespace GitManager.Service
             }
         }
         #region Issues Implementation
+
 
         public async Task<List<IssueDto>> GetAll(int projectId)
         {
@@ -55,6 +63,25 @@ namespace GitManager.Service
                 return new List<IssueDto>();
             }
 
+        }
+
+        public async Task<IssueDto> Get(int projectId, int issueIid)
+        {
+            try
+            {
+                if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
+                if (issueIid <= 0) throw new ArgumentException("Issue InternalID must be positive.", nameof(issueIid));
+                var res = await ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueIid), $"getting issue {issueIid} for project {projectId}");
+                if (res == null)
+                {
+                    return new IssueDto();
+                }
+                return _mapper.Map<IssueDto>(res);
+            }
+            catch (Exception ex)
+            {
+                return new IssueDto();
+            }
         }
 
         public async Task<List<IssueDto>> Search(int projectId, IssueQueryDto query)
@@ -74,14 +101,6 @@ namespace GitManager.Service
             }
         }
 
-        public async Task<IssueDto> Get(int projectId, int issueIid)
-        {
-            if (projectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(projectId));
-            if (issueIid <= 0) throw new ArgumentException("Issue InternalID must be positive.", nameof(issueIid));
-            var res = await ExecuteGitLabActionAsync(() => _client.Issues.Get(projectId, issueIid), $"getting issue {issueIid} for project {projectId}");
-            return _mapper.Map<IssueDto>(res);
-        }
-
         public async Task<IssueDto> Create(IssueDto dto)
         {
             if (dto.ProjectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(dto.ProjectId));
@@ -94,15 +113,16 @@ namespace GitManager.Service
             }
             var issueCreate = new IssueCreate
             {
+                ProjectId = dto.ProjectId,
                 Title = dto.Title,
                 Description = dto.Description,
-                AssigneeId = dto.Assignee.Id,
-                AssigneeIds = dto.Assignees.Select(x => x.Id).ToArray(),
-                MileStoneId = dto.Milestone.Id,
+                AssigneeId = dto.Assignee?.Id, // Nullable, single assignee
+                AssigneeIds = dto.Assignee?.Id != null ? null : dto.Assignees?.Select(x => x.Id).ToArray(), // Use AssigneeIds only if AssigneeId is null
+                MileStoneId = dto.Milestone?.Id,
                 Labels = labelStr,
                 Confidential = dto.Confidential,
                 DueDate = dto.DueDate,
-                EpicId = dto.Epic.Id,
+                EpicId = dto.Epic?.Id,
                 Weight = dto.Weight
             };
 
@@ -123,7 +143,7 @@ namespace GitManager.Service
         {
             if (dto.ProjectId <= 0) throw new ArgumentException("Project ID must be positive.", nameof(dto.ProjectId));
             if (dto.IssueId <= 0) throw new ArgumentException("Issue IID must be positive.", nameof(dto.IssueId));
-            if (dto.Epic.Id <= 0) throw new ArgumentException("Epic ID must be positive.", nameof(dto.Epic.Id));
+            //if (dto.Epic.Id <= 0) throw new ArgumentException("Epic ID must be positive.", nameof(dto.Epic.Id));
 
             var labelStr = "";
             if (dto.Labels != null)
@@ -132,16 +152,19 @@ namespace GitManager.Service
             }
             var issueUpdate = new IssueEdit
             {
+                IssueId = dto.IssueId,
+                ProjectId = dto.ProjectId,
                 Title = dto.Title,
                 Description = dto.Description,
-                AssigneeId = dto.Assignee.Id,
-                AssigneeIds = dto.Assignees.Select(x => x.Id).ToArray(),
-                MilestoneId = dto.Milestone.Id,
+                AssigneeId = dto.Assignee?.Id, // Nullable, single assignee
+                AssigneeIds = dto.Assignee?.Id != null ? null : dto.Assignees?.Select(x => x.Id).ToArray(), // Use AssigneeIds only if AssigneeId is null
+                MilestoneId = dto.Milestone?.Id,
                 Labels = labelStr,
                 Confidential = dto.Confidential,
                 DueDate = dto.DueDate,
-                EpicId = dto.Epic.Id,
-                Weight = dto.Weight
+                EpicId = dto.Epic?.Id,
+                Weight = dto.Weight,
+                State = dto.State
             };
 
             //if (assigneeIds != null)
@@ -152,16 +175,48 @@ namespace GitManager.Service
             return _mapper.Map<IssueDto>(res);
         }
 
-        public Task<IssueDto> Close(IssueDto dto)
+        public async Task<bool> Close(int projectId, int issueIid)
         {
-            dto.State = "close";
-            return Update(dto);
+            try
+            {
+                IssueDto dto = await Get(projectId, issueIid);
+                if (dto.IssueId != issueIid|| dto.State == "closed") { return false; }
+                dto.State = "close";
+                var issueUpdate = new IssueEdit
+                {
+                    ProjectId = projectId,
+                    IssueId = issueIid,
+                    State = dto.State
+                };
+                var res = await ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"closing issue {issueIid} in project {projectId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
-        public Task<IssueDto> Open(IssueDto dto)
+        public async Task<bool> Open(int projectId, int issueIid)
         {
-            dto.State = "open";
-            return Update(dto);
+            try
+            {
+                IssueDto dto = await Get(projectId, issueIid);
+                if (dto == null || dto.State == "open") { return false; }
+                dto.State = "open";
+                var issueUpdate = new IssueEdit
+                {
+                    ProjectId = projectId,
+                    IssueId = issueIid,
+                    State = dto.State
+                };
+                var res = await ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"opening issue {issueIid} in project {projectId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         #endregion
