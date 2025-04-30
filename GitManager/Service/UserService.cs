@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using GitManager.Dto.Issue;
 using GitManager.Dto.User;
 using GitManager.Interface;
 using NGitLab;
+using NGitLab.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,22 +41,60 @@ namespace GitManager.Service
             }
         }
 
-        #region Users Implementation
-
-        //public Task<User> GetUserByIdAsync(int username)
-        //{
-        //    if (userId <= 0) throw new ArgumentException("User ID must be positive.", nameof(userId));
-        //    return ExecuteGitLabActionAsync(() => _client.Users.Get(userId), $"getting user by ID {userId}");
-        //}
-
-
-        public async Task<List<UserDto>> Search(string searchQuery)
+        #region User Implementation
+        public async Task<UserDto> GetUserById(int userId)
         {
-            if (string.IsNullOrWhiteSpace(searchQuery)) throw new ArgumentException("Search query cannot be empty.", nameof(searchQuery));
+            if (userId <= 0) throw new ArgumentException("User ID must be positive.", nameof(userId));
+            var res = await ExecuteGitLabActionAsync(() => _client.Users.GetByIdAsync(userId), $"getting user with ID '{userId}'");
+            return _mapper.Map<UserDto>(res);
+        }
 
-            var query = new UserQuery { Search = searchQuery };
-            var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(query).ToList(), $"searching users with query '{searchQuery}'");
-            return _mapper.Map<List<UserDto>>(res);
+        public async Task<List<UserDto>> GetByUserName(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("username cannot be empty.", nameof(username));
+            var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(username), $"searching users with string '{username}'");
+            if (res.Any())
+            {
+                res.ToList();
+                return _mapper.Map<List<UserDto>>(res);
+            }
+            else
+            {
+                return new List<UserDto>();
+            }
+        }
+
+        public async Task<List<UserDto>> GetAll()
+        {
+            var query = new UserQuery();
+            var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(query), $"searching users with query '{query}'");
+            if (res.Any())
+            {
+                res.ToList();
+                return _mapper.Map<List<UserDto>>(res);
+            }
+            else
+            {
+                return new List<UserDto>();
+            }
+        }
+
+
+        public async Task<List<UserDto>> SearchWithQuery(UserQueryDto userQuery)
+        {
+
+            var query = _mapper.Map<UserQuery>(userQuery);
+
+            var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(query), $"searching users with query '{userQuery}'");
+            if (res.Any())
+            {
+                res.ToList();
+                return _mapper.Map<List<UserDto>>(res);
+            }
+            else
+            {
+                return new List<UserDto>();
+            }
         }
 
         #endregion
