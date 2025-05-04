@@ -12,7 +12,8 @@ class Program
         // Configure services
         var services = new ServiceCollection();
         services.AddGitManager(
-
+            gitLabUrl: "",
+            personalAccessToken: ""
         );
         var serviceProvider = services.BuildServiceProvider();
 
