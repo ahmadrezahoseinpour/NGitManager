@@ -1,4 +1,5 @@
-﻿using NGitLab.Models;
+﻿using GitManager.Dto.Issue.enums;
+using NGitLab.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,12 +12,12 @@ namespace GitManager.Dto.Issue
         /// <summary>
         /// Return all issues or just those that are open, closed, locked, or merged
         /// </summary>
-        public IssueState? State { get; set; }
+        public IssueStateDto? State { get; set; }
 
         /// <summary>
         /// Return all issues or just those that are of type issue, incident or test_case
         /// </summary>
-        public IssueType? Type { get; set; }
+        public IssueTypeDto? Type { get; set; }
 
         /// <summary>
         /// Return requests ordered by created_at or updated_at fields. Default is created_at

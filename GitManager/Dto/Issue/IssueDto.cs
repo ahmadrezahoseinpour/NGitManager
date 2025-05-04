@@ -73,7 +73,7 @@ namespace GitManager.Dto.Issue
         public bool Confidential { get; set; }
 
         [JsonPropertyName("weight")]
-        public int? Weight { get; set; } = 0;
+        public int? Weight { get; set; }
 
         [JsonPropertyName("issue_type")]
         public string IssueType { get; set; }

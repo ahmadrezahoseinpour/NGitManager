@@ -4,6 +4,12 @@ using System.Text;
 
 namespace GitManager.Dto.Issue
 {
+    /// <summary>
+    /// Specifies an assignee ID for a data query. It can be specified via
+    /// - an integer (the actual assignee ID on GitLab):    queries items assigned to the given user
+    /// - 'Any':                                            queries all assigned items
+    /// - 'None':                                           queries all unassigned items
+    /// </summary>
     public sealed class QueryAssigneeIdDto
     {
         private readonly string _id;
