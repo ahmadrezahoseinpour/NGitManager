@@ -33,7 +33,8 @@ namespace GitManager.Service
 
                 return res;
             }
-            catch (GitLabException ex) when (ex.StatusCode == HttpStatusCode.NotFound) {
+            catch (GitLabException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
                 Console.WriteLine("Project not found.");
                 return default;
             }
@@ -111,13 +112,31 @@ namespace GitManager.Service
             {
                 labelStr = string.Join(",", dto.Labels);
             }
+
+            long[] targetAssigneeIds = null;
+            bool assigneesProvidedInDto = (dto.Assignees != null && dto.Assignees.Any()) || (dto.Assignee?.Id != null);
+
+
+            if (assigneesProvidedInDto)
+            {
+                if (dto.Assignees != null && dto.Assignees.Any())
+                {
+                    targetAssigneeIds = dto.Assignees.Select(x => x.Id).ToArray();
+                }
+                else
+                {
+                    targetAssigneeIds = new long[] { dto.Assignee.Id };
+                }
+            }
+
             var issueCreate = new IssueCreate
             {
                 ProjectId = dto.ProjectId,
                 Title = dto.Title,
                 Description = dto.Description,
-                AssigneeId = dto.Assignee?.Id, // Nullable, single assignee
-                AssigneeIds = dto.Assignee?.Id != null ? null : dto.Assignees?.Select(x => x.Id).ToArray(), // Use AssigneeIds only if AssigneeId is null
+                AssigneeId = null,
+                AssigneeIds = targetAssigneeIds,
+                //AssigneeIds = dto.Assignee?.Id != null ? null : dto.Assignees?.Select(x => x.Id).ToArray(), // Use AssigneeIds only if AssigneeId is null
                 MileStoneId = dto.Milestone?.Id,
                 Labels = labelStr,
                 Confidential = dto.Confidential,
@@ -146,18 +165,53 @@ namespace GitManager.Service
             //if (dto.Epic.Id <= 0) throw new ArgumentException("Epic ID must be positive.", nameof(dto.Epic.Id));
 
             var labelStr = "";
-            if (dto.Labels != null)
+            if (dto.Labels != null && dto.Labels.Any())
             {
                 labelStr = string.Join(",", dto.Labels);
             }
+            else
+            {
+                labelStr = null;
+            }
+
+            long[] targetAssigneeIds = null;
+            bool assigneesProvidedInDto = (dto.Assignees != null && dto.Assignees.Any()) || (dto.Assignee?.Id != null);
+
+
+            if (assigneesProvidedInDto)
+            {
+                if (dto.Assignees != null && dto.Assignees.Any())
+                {
+                    targetAssigneeIds = dto.Assignees.Select(x => x.Id).ToArray();
+                }
+                else 
+                {
+                    targetAssigneeIds = new long[] { dto.Assignee.Id};
+                }
+            }
+
+            //if (dto.Assignees != null && dto.Assignees.Any())
+            //{
+            //    targetAssigneeIds = dto.Assignees.Select(x => x.Id).ToArray();
+            //}
+            //else if (dto.Assignee?.Id != null)
+            //{
+            //    targetAssigneeIds = new long[] { dto.Assignee.Id };
+            //}
+            //else
+            //{
+            //    targetAssigneeIds = new long[0];
+            //}
+
             var issueUpdate = new IssueEdit
             {
                 IssueId = dto.IssueId,
                 ProjectId = dto.ProjectId,
                 Title = dto.Title,
                 Description = dto.Description,
-                AssigneeId = dto.Assignee?.Id, // Nullable, single assignee
-                AssigneeIds = dto.Assignee?.Id != null ? null : dto.Assignees?.Select(x => x.Id).ToArray(), // Use AssigneeIds only if AssigneeId is null
+                AssigneeId = null,
+                AssigneeIds = targetAssigneeIds,
+                //AssigneeIds = dto.Assignee?.Id != null ? null : dto.Assignees?.Select(x => x.Id).ToArray(), // Use AssigneeIds only if AssigneeId is null
                 MilestoneId = dto.Milestone?.Id,
                 Labels = labelStr,
                 Confidential = dto.Confidential,
@@ -180,7 +234,16 @@ namespace GitManager.Service
             try
             {
                 IssueDto dto = await Get(projectId, issueIid);
-                if (dto.IssueId != issueIid|| dto.State == "closed") { return false; }
+                if (dto.IssueId != issueIid)
+                {
+                    Console.WriteLine("Issue Not Found");
+                    return false;
+                }
+                if (dto.State == "closed")
+                {
+                    Console.WriteLine($"Issue {issueIid} is already closed");
+                    return false;
+                }
                 dto.State = "close";
                 var issueUpdate = new IssueEdit
                 {
@@ -191,9 +254,15 @@ namespace GitManager.Service
                 var res = await ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"closing issue {issueIid} in project {projectId}");
                 return true;
             }
+            catch (GitLabException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                Console.WriteLine($"Permission denied opening issue {issueIid} in project {projectId}: {ex.Message}");
+                return false; // Insufficient permissions
+            }
             catch (Exception ex)
             {
-                return false;
+                Console.WriteLine($"Error opening issue {issueIid} in project {projectId}: {ex.Message}");
+                return false; // Other errors
             }
         }
 
@@ -202,8 +271,17 @@ namespace GitManager.Service
             try
             {
                 IssueDto dto = await Get(projectId, issueIid);
-                if (dto == null || dto.State == "open") { return false; }
-                dto.State = "open";
+                if (dto.IssueId != issueIid)
+                {
+                    Console.WriteLine("Issue Not Found");
+                    return false;
+                }
+                if (dto.State == "opened")
+                {
+                    Console.WriteLine($"Issue {issueIid} is already opened");
+                    return false;
+                }
+                dto.State = "reopen";
                 var issueUpdate = new IssueEdit
                 {
                     ProjectId = projectId,
@@ -213,9 +291,15 @@ namespace GitManager.Service
                 var res = await ExecuteGitLabActionAsync(() => _client.Issues.Edit(issueUpdate), $"opening issue {issueIid} in project {projectId}");
                 return true;
             }
+            catch (GitLabException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                Console.WriteLine($"Permission denied opening issue {issueIid} in project {projectId}: {ex.Message}");
+                return false; // Insufficient permissions
+            }
             catch (Exception ex)
             {
-                return false;
+                Console.WriteLine($"Error opening issue {issueIid} in project {projectId}: {ex.Message}");
+                return false; // Other errors
             }
         }
 
