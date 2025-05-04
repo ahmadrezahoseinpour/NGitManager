@@ -45,8 +45,9 @@ namespace GitManager.Service
         public async Task<UserDto> GetUserById(int userId)
         {
             if (userId <= 0) throw new ArgumentException("User ID must be positive.", nameof(userId));
-            var res = await ExecuteGitLabActionAsync(() => _client.Users.GetByIdAsync(userId), $"getting user with ID '{userId}'");
-            return _mapper.Map<UserDto>(res);
+            var res = await ExecuteGitLabActionAsync(() => _client.Users.GetByIdAsync(userId), $"getting user with ID '{userId}'").Result;
+            if (res.Id == userId) { return _mapper.Map<UserDto>(res); }
+            else return new UserDto();
         }
 
         public async Task<List<UserDto>> GetByUserName(string username)
