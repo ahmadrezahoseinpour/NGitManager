@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using GitManager.Service;
+using GitManager.Service.Utility;
 
 namespace GitManager
 {
