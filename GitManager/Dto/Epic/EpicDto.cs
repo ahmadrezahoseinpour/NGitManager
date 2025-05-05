@@ -1,5 +1,4 @@
-﻿using NGitLab.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -27,7 +26,7 @@ namespace GitManager.Dto.Epic
         public string[] Labels { get; set; }
 
         [JsonPropertyName("state")]
-        public EpicState State { get; set; }
+        public EpicStateDto State { get; set; }
 
         [JsonPropertyName("created_at")]
         public DateTime CreatedAt { get; set; }
