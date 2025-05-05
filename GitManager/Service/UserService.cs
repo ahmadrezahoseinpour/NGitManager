@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using GitManager.Dto;
 using GitManager.Dto.Issue;
 using GitManager.Dto.User;
 using GitManager.Interface;
@@ -8,12 +9,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace GitManager.Service
 {
-    internal class UserService:IUserService
+    internal class UserService : IUserService
     {
 
         private readonly GitLabClient _client;
@@ -31,70 +33,96 @@ namespace GitManager.Service
             {
                 return await Task.Run(action);
             }
-            catch (GitLabException ex)
+            catch (GitLabException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
-                throw new InvalidOperationException($"GitLab API error during '{operationDescription}': {ex.Message} (StatusCode: {ex.StatusCode})", ex);
+                Console.WriteLine("Project not found.");
+                throw new InvalidOperationException($"Not found error occurred during '{operationDescription}': {ex.Message}", ex);
             }
-            catch (Exception ex) when (!(ex is GitLabException)) // Catch non-GitLab exceptions
+            catch (Exception ex) 
             {
                 throw new InvalidOperationException($"An unexpected error occurred during '{operationDescription}': {ex.Message}", ex);
             }
         }
 
         #region User Implementation
-        public async Task<UserDto> GetUserById(int userId)
+        public async Task<Response<UserDto>> GetUserById(int userId)
         {
-            if (userId <= 0) throw new ArgumentException("User ID must be positive.", nameof(userId));
-            var res = await ExecuteGitLabActionAsync(() => _client.Users.GetByIdAsync(userId), $"getting user with ID '{userId}'").Result;
-            if (res.Id == userId) { return _mapper.Map<UserDto>(res); }
-            else return new UserDto();
-        }
-
-        public async Task<List<UserDto>> GetByUserName(string username)
-        {
-            if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("username cannot be empty.", nameof(username));
-            var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(username), $"searching users with string '{username}'");
-            if (res.Any())
+            try
             {
-                res.ToList();
-                return _mapper.Map<List<UserDto>>(res);
+                if (userId <= 0) throw new ArgumentException("User ID must be positive.", nameof(userId));
+                var res = await ExecuteGitLabActionAsync(() => _client.Users.GetByIdAsync(userId), $"getting user with ID '{userId}'").Result;
+                if (res.Id == userId)
+                {
+                    var data = _mapper.Map<UserDto>(res);
+                    return new Response<UserDto>() { Status = 200, Message = "Succeed", Data = data };
+                }
+                else return new Response<UserDto>() { Status = 404, Message = "NotFound", Data = null };
             }
-            else
+            catch (Exception ex)
             {
-                return new List<UserDto>();
+                return new Response<UserDto>() { Status = 400, Message = ex.Message, Data = null };
             }
         }
 
-        public async Task<List<UserDto>> GetAll()
+        public async Task<Response<List<UserDto>>> GetByUserName(string username)
         {
-            var query = new UserQuery();
-            var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(query), $"searching users with query '{query}'");
-            if (res.Any())
+            try
             {
-                res.ToList();
-                return _mapper.Map<List<UserDto>>(res);
+                if (string.IsNullOrWhiteSpace(username)) throw new ArgumentException("username cannot be empty.", nameof(username));
+                var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(username), $"searching users with string '{username}'");
+                if (res.Any())
+                {
+                    res.ToList();
+                    var data = _mapper.Map<List<UserDto>>(res);
+                    return new Response<List<UserDto>>() { Status = 200, Message = "Succeed", Data = data };
+                }
+                else return new Response<List<UserDto>>() { Status = 404, Message = "NotFound", Data = null };
             }
-            else
+            catch (Exception ex)
             {
-                return new List<UserDto>();
+                return new Response<List<UserDto>>() { Status = 400, Message = ex.Message, Data = null };
+            }
+        }
+
+        public async Task<Response<List<UserDto>>> GetAll()
+        {
+            try
+            {
+                var query = new UserQuery();
+                var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(query), $"searching users with query '{query}'");
+                if (res.Any())
+                {
+                    res.ToList();
+                    var data = _mapper.Map<List<UserDto>>(res);
+                    return new Response<List<UserDto>>() { Status = 200, Message = "Succeed", Data = data };
+                }
+                else return new Response<List<UserDto>>() { Status = 404, Message = "NotFound", Data = null };
+            }
+            catch (Exception ex)
+            {
+                return new Response<List<UserDto>>() { Status = 400, Message = ex.Message, Data = null };
             }
         }
 
 
-        public async Task<List<UserDto>> SearchWithQuery(UserQueryDto userQuery)
+        public async Task<Response<List<UserDto>>> SearchWithQuery(UserQueryDto userQuery)
         {
-
-            var query = _mapper.Map<UserQuery>(userQuery);
-
-            var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(query), $"searching users with query '{userQuery}'");
-            if (res.Any())
+            try
             {
-                res.ToList();
-                return _mapper.Map<List<UserDto>>(res);
+                var query = _mapper.Map<UserQuery>(userQuery);
+
+                var res = await ExecuteGitLabActionAsync(() => _client.Users.Get(query), $"searching users with query '{userQuery}'");
+                if (res.Any())
+                {
+                    res.ToList();
+                    var data = _mapper.Map<List<UserDto>>(res);
+                    return new Response<List<UserDto>>() { Status = 200, Message = "Succeed", Data = data };
+                }
+                else return new Response<List<UserDto>>() { Status = 404, Message = "NotFound", Data = null };
             }
-            else
+            catch (Exception ex)
             {
-                return new List<UserDto>();
+                return new Response<List<UserDto>>() { Status = 400, Message = ex.Message, Data = null };
             }
         }
 
