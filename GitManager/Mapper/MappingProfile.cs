@@ -29,11 +29,11 @@ namespace GitManager.Mapper
 
             CreateMap<Epic, EpicDto>();
             CreateMap<EpicQuery, EpicQueryDto>();
+            CreateMap<EpicQueryDto, EpicQuery>(); // Reverse map 
             CreateMap<EpicState, EpicStateDto>();
 
-            // Mappings for the first Map call
-            CreateMap<IssueStateDto, IssueState>(); // Reverse map needed?
-            CreateMap<IssueTypeDto, IssueType>();   // Reverse map needed?
+            CreateMap<IssueStateDto, IssueState>(); // Reverse map 
+            CreateMap<IssueTypeDto, IssueType>();   // Reverse map
             CreateMap<QueryAssigneeIdDto, QueryAssigneeId>(); // *** NEED THIS DIRECTION ***
             CreateMap<IssueQueryDto, IssueQuery>(); // *** NEED THIS MAIN MAP ***
 
