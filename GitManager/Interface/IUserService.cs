@@ -1,5 +1,5 @@
-﻿using GitManager.Dto.User;
-using NGitLab.Models;
+﻿using GitManager.Dto;
+using GitManager.Dto.User;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,7 +18,7 @@ namespace GitManager.Interface
         /// <returns>The requested user.</returns>
         /// <exception cref="ArgumentException">Thrown if userId is invalid.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<UserDto> GetUserById(int userId);
+        Task<Response<UserDto>> GetUserById(int userId);
 
         /// <summary>
         /// Get a list of users by their GitLab username.
@@ -27,14 +27,14 @@ namespace GitManager.Interface
         /// <returns>The requested user.</returns>
         /// <exception cref="ArgumentException">Thrown if username is invalid.</exception>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<List<UserDto>> GetByUserName(string username);
+        Task<Response<List<UserDto>>> GetByUserName(string username);
 
         /// <summary>
         /// Get all users.
         /// </summary>
         /// <returns>The requested user.</returns>
         /// <exception cref="InvalidOperationException">Thrown for unexpected errors during the operation.</exception>
-        Task<List<UserDto>> GetAll();
+        Task<Response<List<UserDto>>> GetAll();
 
         #endregion
     }
